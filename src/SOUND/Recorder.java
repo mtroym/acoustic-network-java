@@ -6,17 +6,17 @@ import java.io.IOException;
 
 public class Recorder {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
         System.out.println("Start testing Sound.....");
 
         try {
-            AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100 ,16 ,2 ,4 , 44100,false);
+            AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
-            if(!AudioSystem.isLineSupported(info)){
+            if (!AudioSystem.isLineSupported(info)) {
                 System.err.println("line not supported");
             }
-            TargetDataLine targetLine = (TargetDataLine)AudioSystem.getLine(info);
+            TargetDataLine targetLine = (TargetDataLine) AudioSystem.getLine(info);
             targetLine.open();
             System.out.println("Start Recording ... ");
             targetLine.start();

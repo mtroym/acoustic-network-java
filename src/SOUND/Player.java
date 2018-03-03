@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 
 
-public class Play {
+public class Player {
     private static Mixer mixer;
     private static Clip clip;
 
@@ -19,14 +19,14 @@ public class Play {
 
         DataLine.Info dataInfo = new DataLine.Info(Clip.class, null);
         try {
-            clip = (Clip)mixer.getLine(dataInfo);
-        }catch (LineUnavailableException ex){
+            clip = (Clip) mixer.getLine(dataInfo);
+        } catch (LineUnavailableException ex) {
             ex.printStackTrace();
         }
 
 
         try {
-            URL soundURL = Play.class.getResource("treasure.wav");
+            URL soundURL = Player.class.getResource("treasure.wav");
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundURL);
             clip.open(audioStream);
         } catch (LineUnavailableException e) {
