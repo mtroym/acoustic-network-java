@@ -9,11 +9,11 @@ public class Recorder {
 
     private static Mixer mixer;
     private static Clip clip;
-    private static AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 8000f, 8, 1, 1, 8000f, false);
+    private static AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 1, 2, 44100, true);
 
 
     public static void main(String[] args) {
-        record(true, true,"treasure.wav", "record.wav", 3);
+        record(true, true,"treasure.wav", "record.wav", 10);
     }
 
 
@@ -48,10 +48,6 @@ public class Recorder {
 
         try {
 
-            DataLine.Info replayInfo = new DataLine.Info(javax.sound.sampled.SourceDataLine.class, format);
-            final SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(replayInfo);
-            sourceDataLine.open(format);
-
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
             if (!AudioSystem.isLineSupported(info)) {
                 System.err.println("[ERROR!] : line not supported");
@@ -73,32 +69,34 @@ public class Recorder {
                // System.out.println("=> Stopped Recording ... ");
             });
 
-
-            // File audioFile = new File(saveFileName);
-            // try {
-            //     AudioSystem.write(audioStream, AudioFileFormat.Type.WAVE, audioFile);
-            // } catch (IOException e) {
-            //     e.printStackTrace();
-            // }
-            // TODO copy codes. from line 91 at Capture.java
-
             Thread replayThread = new Thread(() -> {
-                byte data[] = outputStream.toByteArray();
-                InputStream inputStream = new ByteArrayInputStream(data);
-                AudioInputStream audioStream = new AudioInputStream(inputStream, format,
-                        data.length / format.getFrameSize());
+                try{
+                    byte data[] = outputStream.toByteArray();
 
+                    final InputStream inputStream = new ByteArrayInputStream(data);
+                    final AudioInputStream audioStream = new AudioInputStream(inputStream, format,
+                            data.length / format.getFrameSize());
+                    DataLine.Info replayInfo = new DataLine.Info(SourceDataLine.class, format);
+                    final SourceDataLine sourceDataLine;
+                    sourceDataLine = (SourceDataLine) AudioSystem.getLine(replayInfo);
+                    sourceDataLine.open(format);
+                    sourceDataLine.start();
 
-
-
-                sourceDataLine.start();
-
-
-
-
-                while (true){
-                   sourceDataLine.write(outputStream.toByteArray(),0, outputStream.size());
+                    int count;
+                    try{
+                        while( (count = audioStream.read(data,0,data.length) ) != -1 ){
+                            if (count > 0 ){ sourceDataLine.write(data,0, count); }
+                        }
+                        sourceDataLine.drain();
+                        sourceDataLine.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (LineUnavailableException e) {
+                    e.printStackTrace();
                 }
+
+
             });
 
             clip.start();
@@ -112,17 +110,17 @@ public class Recorder {
             targetThread.interrupt();
 
             if (isReplay) {
-                System.out.println("=> start playback");
+                System.out.println("=> Start replay Tasks ");
                 replayThread.start();
-                System.out.println("=> start playback 1 ");
-                Thread.sleep(seconds * 1000);
-                System.out.println("=> start playback 2 ");
-                sourceDataLine.stop();
-                System.out.println("=> start playback 3 ");
-                sourceDataLine.close();
-                System.out.println("=> Ended playback 4 ");
+                int i = 0;
+                while (i < seconds){
+                    Thread.sleep(1000);
+                    System.out.println("=> Now is " + String.valueOf(i));
+                    i ++;
+                }
+                System.out.println("=> Ended replay Tasks ");
             }
-            replayThread.interrupt();
+//            replayThread.interrupt();
 
             System.exit(0);
 
