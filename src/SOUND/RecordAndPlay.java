@@ -3,16 +3,18 @@ package SOUND;
 import javax.sound.sampled.*;
 import java.io.ByteArrayOutputStream;
 
-public class SourceDataLine {
+public class RecordAndPlay {
 
     public static void main(String[] args) {
         int ALL_TIME = 5000;
         System.out.println("Start testing Sound.....");
+        // Make audio format
         AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
 
         try {
+            // generate source line. which store the recorded informations
             DataLine.Info info = new DataLine.Info(javax.sound.sampled.SourceDataLine.class, format);
-            final javax.sound.sampled.SourceDataLine sourceLine = (javax.sound.sampled.SourceDataLine) AudioSystem.getLine(info);
+            final SourceDataLine sourceLine = (SourceDataLine) AudioSystem.getLine(info);
             sourceLine.open();
 
             info = new DataLine.Info(TargetDataLine.class, format);
@@ -22,6 +24,7 @@ public class SourceDataLine {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
             Thread sourceThread = new Thread(() -> {
+                sourceLine.start();
                 while (true) {
                     sourceLine.write(outputStream.toByteArray(), 0, outputStream.size());
                 }
