@@ -3,7 +3,7 @@ package SOUND;
 import javax.sound.sampled.*;
 import java.io.ByteArrayOutputStream;
 
-public class SourceDataLine<author> {
+public class SourceDataLine {
 
     public static void main(String[] args) {
         int ALL_TIME = 5000;
@@ -12,14 +12,14 @@ public class SourceDataLine<author> {
 
         try {
             DataLine.Info info = new DataLine.Info(javax.sound.sampled.SourceDataLine.class, format);
-            javax.sound.sampled.SourceDataLine sourceLine = (javax.sound.sampled.SourceDataLine) AudioSystem.getLine(info);
+            final javax.sound.sampled.SourceDataLine sourceLine = (javax.sound.sampled.SourceDataLine) AudioSystem.getLine(info);
             sourceLine.open();
 
             info = new DataLine.Info(TargetDataLine.class, format);
-            TargetDataLine targetLine = (TargetDataLine) AudioSystem.getLine(info);
+            final TargetDataLine targetLine = (TargetDataLine) AudioSystem.getLine(info);
             targetLine.open();
 
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
             Thread sourceThread = new Thread(() -> {
                 while (true) {

@@ -11,11 +11,9 @@ public class Player {
 
 
     public static void main(String[] args) {
-        Mixer.Info[] mixInfos = AudioSystem.getMixerInfo();
-//        for(Mixer.Info info : mixInfos){
-//            System.out.println(info.getName() + " --- " + info.getDescription());
-//        }
-        mixer = AudioSystem.getMixer(mixInfos[0]);
+//        Mixer.Info[] mixInfos = AudioSystem.getMixerInfo();
+//        for(Mixer.Info info : mixInfos){ System.out.println(info.getName() + " --- " + info.getDescription()); }
+//        mixer = AudioSystem.getMixer(mixInfos[0]);
 
         DataLine.Info dataInfo = new DataLine.Info(Clip.class, null);
         try {
