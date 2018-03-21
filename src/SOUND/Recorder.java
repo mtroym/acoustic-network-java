@@ -15,7 +15,7 @@ public class Recorder {
 
 
     public static void main(String[] args) {
-        record(true, true,"treasure.wav", "record.wav", 10);
+        record(false, true,"treasure.wav", "record.wav", 10);
     }
 
 
@@ -100,15 +100,15 @@ public class Recorder {
 
 
             });
-
-            clip.start();
+            if (isPlay){clip.start(); }
             targetThread.start();
             Thread.sleep(seconds * 1000);
             targetLine.stop();
             targetLine.close();
             System.out.println("=> Ended Sound Tasks ");
-            clip.stop();
-            clip.close();
+            if (isPlay){clip.stop();clip.close();}
+
+
             targetThread.interrupt();
 
             if (isReplay) {

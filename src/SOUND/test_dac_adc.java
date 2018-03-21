@@ -9,37 +9,37 @@ import java.io.File;
 import java.io.FileInputStream;
 
 public class test_dac_adc {
-        public static int HEADER_LEN=44;
-        public static double PI=Math.PI;
-        public static int TIME_LEN=10;
-        public static int FREQ=1000;
+    public static int HEADER_LEN=44;
+    public static double PI=Math.PI;
+    public static int TIME_LEN=10;
+    public static int FREQ=1000;
 
-        public static void reader(File file){
-            try{
-                FileInputStream fileInputStream=new FileInputStream(file); //获取文件输入流；
-                BufferedInputStream bufferedInputStream=new BufferedInputStream(fileInputStream);   //获取buf流；
+    public static void reader(File file){
+        try{
+            FileInputStream fileInputStream=new FileInputStream(file); //获取文件输入流；
+            BufferedInputStream bufferedInputStream=new BufferedInputStream(fileInputStream);   //获取buf流；
 
-                int data=0;
-                int byteRead=0; //只需要header的话用这个计数到44；
+            int data=0;
+            int byteRead=0; //只需要header的话用这个计数到44；
 
-                while((data=bufferedInputStream.read())!=-1){
-                    System.out.println("HEXDATA: "+Integer.toString(data, 16));
-                    System.out.println(String.format("BINDATA: %08d", Integer.valueOf(Integer.toString(data, 2))));
-                    //++byteRead;
-                }
-            }catch (Exception e){
-                System.err.println("Exception: "+e.getMessage());
+            while((data=bufferedInputStream.read())!=-1){
+                System.out.println("HEXDATA: "+Integer.toString(data, 16));
+                System.out.println(String.format("BINDATA: %08d", Integer.valueOf(Integer.toString(data, 2))));
+                //++byteRead;
             }
+        }catch (Exception e){
+            System.err.println("Exception: "+e.getMessage());
+        }
     }
     public static void sender(){
         AudioFormat audioFormat=new AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED,
-                44100,
-                16,
-                2,
-                4,
-                44100,
-                false
+            AudioFormat.Encoding.PCM_SIGNED,
+            44100,
+            16,
+            2,
+            4,
+            44100,
+            false
         );
         try{
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
