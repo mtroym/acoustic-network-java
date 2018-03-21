@@ -1,10 +1,12 @@
 package SOUND;
 
-import java.io.*;
-import java.net.URL;
-import javax.sound.sampled.*;
-import java.io.ByteArrayOutputStream;
-import java.security.spec.ECField;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.SourceDataLine;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 
 public class test_dac_adc {
         public static int HEADER_LEN=44;
@@ -55,7 +57,8 @@ public class test_dac_adc {
         }
     }
     public static void main(String[] args){
-        File file=new File("Y:\\\\yy\\\\8.32.0.0\\\\wave\\\\voice.wav");
+        File file = new File("/Users/tony/IdeaProjects/CS120-Toy/src/SOUND/treasure.wav");
+        // File file=new File("Y:\\\\yy\\\\8.32.0.0\\\\wave\\\\voice.wav");
         reader(file);
     }
 }

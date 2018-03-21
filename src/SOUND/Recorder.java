@@ -1,15 +1,17 @@
 package SOUND;
 
 import javax.sound.sampled.*;
-import javax.xml.crypto.Data;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 public class Recorder {
 
     private static Mixer mixer;
     private static Clip clip;
-    private static AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 1, 2, 44100, true);
+    private static AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 8000, 8, 1, 1, 8000, true);
 
 
     public static void main(String[] args) {
