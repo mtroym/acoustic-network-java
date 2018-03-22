@@ -1,6 +1,5 @@
 package SOUND.core;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -44,8 +43,6 @@ public class Encoder {
                 assert ((c == '1') || (c == '0')) : "=> Cannot put 2 or more base";
                 linkedList.add((int) c - 48);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -68,21 +65,28 @@ public class Encoder {
 
     private static LinkedList packUp(LinkedList msg) {
         int totalSize = msg.size();
-        int numPkg = (int) Math.ceil( totalSize / FRAME_SIZE);
+        System.out.println(totalSize);
+        int numPkg = (int) Math.ceil(totalSize / (double) FRAME_SIZE);
+        System.out.println(numPkg);
         if (numPkg > 255) {
             exit(-4);
         }
-        int skip = numPkg * FRAME_SIZE - msg.size();
+        LinkedList pkgs = new LinkedList();
         for (int i = 0; i < numPkg ; i ++){
-            byte[] pkg = new byte[FRAME_SIZE + 8];
+            int[] pkg = new int[FRAME_SIZE];
             for (int j = 0; j < FRAME_SIZE; j++){
                 if ((i*FRAME_SIZE + j) < totalSize){
-                    pkg[j] = (byte) msg.pop();
-                    // TODO: decode as wav
+                    pkg[j] = (int) msg.pop();
+                } else {
+                    pkg[j] = 0;
                 }
             }
+            pkg = utils.addIntArray(utils.dec2Arr(i, 8), pkg);
+            // TODO: add CRC code
+            pkgs.add(pkg);
+            System.out.println(Arrays.toString(pkg));
         }
-        return msg;
+        return pkgs;
     }
 
     public static void main(String args[]) throws IOException {
@@ -91,21 +95,26 @@ public class Encoder {
         FRAME1 = generateWave(BIT_SAMPLE, CARRIER1_FREQ);
         String current = new java.io.File(".").getCanonicalPath();
         LinkedList dataList = getFile(current + "/text/input.txt");
+
+        LinkedList pkgs = packUp(dataList);
         int len = dataList.size();
         // TODO: Handle 10Mbit file
         System.out.println("=> The length of bits to be sent is " + len);
-        utils UTIL = new utils();
         byte soundTrack[] = getPreamble();
-        while (dataList.size() != 0) {
-            int sig = (int) dataList.pop();
-            if (sig == 0) {
-                soundTrack = UTIL.addArray(soundTrack, FRAME0);
-            } else {
-                soundTrack = UTIL.addArray(soundTrack, FRAME1);
-            }
-        }
-        System.out.println("=> end debug");
-        System.out.println(Arrays.toString(soundTrack));
+
+
+        // TODO : Send package by package.
+
+//        while (dataList.size() != 0) {
+//            int sig = (int) dataList.pop();
+//            if (sig == 0) {
+//                soundTrack = utils.addArray(soundTrack, FRAME0);
+//            } else {
+//                soundTrack = utils.addArray(soundTrack, FRAME1);
+//            }
+//        }
+//        System.out.println("=> end debug");
+//        System.out.println(Arrays.toString(soundTrack));
     }
 
 
