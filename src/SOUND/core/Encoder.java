@@ -10,8 +10,7 @@ import java.util.LinkedList;
 import static java.lang.System.exit;
 
 
-public class Decoder {
-
+public class Encoder {
     private static float SAMPLE_RATE = 44100;
     private static int FRAME_SIZE = 92;
     private static float CARRIER1_FREQ = 10000;
@@ -24,8 +23,6 @@ public class Decoder {
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
 
-    public Decoder() {
-    }
 
     private static byte[] generateWave(int sample, float carrier) {
         byte[] wave = new byte[sample];
