@@ -3,7 +3,6 @@ package SOUND.core;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.LinkedList;
 
 import static java.lang.System.exit;
@@ -11,22 +10,23 @@ import static java.lang.System.exit;
 
 public class Encoder {
     private static float SAMPLE_RATE = 44100;
-    private static int FRAME_SIZE = 92;
-    private static float CARRIER1_FREQ = 10000;
-    private static float CARRIER0_FREQ = 5000;
+    private static int FRAME_SIZE = 100;
+    private static float CARRIER1_FREQ = 3000;
+    private static float CARRIER0_FREQ = 1000;
     private static int PREAMBLE_SIZE = 440;
     private static double CUTOFF_1 = 2e3;
     private static double CUTOFF_2 = 10e3;
-    private static double AMP_PREAMPLE = 127;
-    private static int BIT_SAMPLE = 44;
+    private static int BIT_SAMPLE = 88;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
+    private static double AMPLE = 60;
+    private static int INTERVAL_BIT = 440; // ~0.01s
 
 
     private static byte[] generateWave(int sample, float carrier) {
         byte[] wave = new byte[sample];
         for (int i = 0; i < sample; i++) {
-            wave[i] = (byte) (127 * Math.sin(2 * Math.PI * carrier * i / SAMPLE_RATE));
+            wave[i] = (byte) (/*carrier / CARRIER0_FREQ */ AMPLE * Math.sin(2 * Math.PI * carrier * i / SAMPLE_RATE));
         }
         return wave;
     }
@@ -55,7 +55,7 @@ public class Encoder {
 
         for (int i = 0; i < PREAMBLE_SIZE >> 1 ; i++){
             double phase = ((double) i / SAMPLE_RATE ) * (i * phaseIncre + CUTOFF_1);
-            double signal = AMP_PREAMPLE * (Math.sin(2 * Math.PI * phase ));
+            double signal = AMPLE * (Math.sin(2 * Math.PI * phase));
             preamble[i] = (byte) signal;
             preamble[PREAMBLE_SIZE - i - 1] = preamble[i];
         }
@@ -84,12 +84,12 @@ public class Encoder {
             pkg = utils.addIntArray(utils.dec2Arr(i, 8), pkg);
             // TODO: add CRC code
             pkgs.add(pkg);
-            System.out.println(Arrays.toString(pkg));
+//            System.out.println(Arrays.toString(pkg));
         }
         return pkgs;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws IOException, InterruptedException {
         System.out.println("=> Setup carriers!!!!.....");
         FRAME0 = generateWave(BIT_SAMPLE, CARRIER0_FREQ);
         FRAME1 = generateWave(BIT_SAMPLE, CARRIER1_FREQ);
@@ -98,22 +98,30 @@ public class Encoder {
 
         LinkedList pkgs = packUp(dataList);
         int len = dataList.size();
-        // TODO: Handle 10Mbit file
         System.out.println("=> The length of bits to be sent is " + len);
-        byte soundTrack[] = getPreamble();
 
 
         // TODO : Send package by package.
+        byte[] totalTrack = new byte[0];
+        int numPkgs = pkgs.size();
+        for (int i = 0; i < numPkgs; i++) {
+            byte soundTrack[] = getPreamble();
+            int[] singlePkg = (int[]) pkgs.pop();
+            for (int bit : singlePkg) {
+                if (bit == 0) {
+                    soundTrack = utils.addArray(soundTrack, FRAME0);
+                } else {
+                    soundTrack = utils.addArray(soundTrack, FRAME1);
+                }
+            }
+            totalTrack = utils.addArray(totalTrack, soundTrack);
+            byte[] zeros = new byte[INTERVAL_BIT];
+            totalTrack = utils.addArray(totalTrack, zeros);
+        }
+//        System.out.println(Arrays.toString(totalTrack));
+        Sender.sendByte(totalTrack);
 
-//        while (dataList.size() != 0) {
-//            int sig = (int) dataList.pop();
-//            if (sig == 0) {
-//                soundTrack = utils.addArray(soundTrack, FRAME0);
-//            } else {
-//                soundTrack = utils.addArray(soundTrack, FRAME1);
-//            }
-//        }
-//        System.out.println("=> end debug");
+        System.out.println("=> end debug");
 //        System.out.println(Arrays.toString(soundTrack));
     }
 

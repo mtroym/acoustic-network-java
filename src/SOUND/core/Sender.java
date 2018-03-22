@@ -15,28 +15,10 @@ public class Sender {
 
     }
 
-
-    public static byte[] initData() {
-        double phase = 0.0;
-        int amp = 1;
-        float t = 3;
-        int bufferSize = round(t * SAMPLE_RATE);
-        byte[] data = new byte[bufferSize];
-
-        double phaseIncrement = (2 * Math.PI * 1000) / SAMPLE_RATE;
-
-        for (int i = 0; i < bufferSize; i++) {
-            data[i] = (byte) (amp * Math.sin(phase));
-            phase += phaseIncrement;
-        }
-        return data;
-    }
-
-
-    public static byte[] task2data() {
+    private static byte[] task2data() {
         double time = 0.0;
         double amp = 60;
-        float t = 1;
+        float t = 10;
         int bufferSize = round(t * SAMPLE_RATE);
         byte[] data = new byte[bufferSize];
         double timeIncrement = 1 / SAMPLE_RATE;
@@ -49,7 +31,7 @@ public class Sender {
         return data;
     }
 
-    private static void sendByte(byte[] audio) {
+    static void sendByte(byte[] audio) {
         try {
             final AudioFormat format = getFormat();
             InputStream inputStream = new ByteArrayInputStream(audio);
@@ -81,8 +63,8 @@ public class Sender {
     }
 
 
-    public static AudioFormat getFormat() {
-        int SAMPLE_SIZE = 8;
+    private static AudioFormat getFormat() {
+        int SAMPLE_SIZE = 16;
         return new AudioFormat(SAMPLE_RATE,
             SAMPLE_SIZE, 1, true, true);
     }
