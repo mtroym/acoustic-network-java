@@ -88,14 +88,15 @@ public class Decoder {
         return msg;
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         System.out.println("=> Setup carriers!!!!.....");
         FRAME0 = generateWave(BIT_SAMPLE, CARRIER0_FREQ);
         FRAME1 = generateWave(BIT_SAMPLE, CARRIER1_FREQ);
-        LinkedList dataList = getFile("/Users/tony/IdeaProjects/CS120-Toy/text/input.txt");
+        String current = new java.io.File(".").getCanonicalPath();
+        LinkedList dataList = getFile(current + "/text/input.txt");
         int len = dataList.size();
         // TODO: Handle 10Mbit file
-        System.out.println(len);
+        System.out.println("=> The length of bits to be sent is " + len);
         utils UTIL = new utils();
         byte soundTrack[] = getPreamble();
         while (dataList.size() != 0) {
@@ -107,11 +108,6 @@ public class Decoder {
             }
         }
         System.out.println("=> end debug");
-//        System.out.println((byte) 213.111);
-//        System.out.println(Arrays.toString(getPreamble()));
-
-//        System.out.println(Arrays.toString(FRAME0));
-//        System.out.println(Arrays.toString(FRAME1));
         System.out.println(Arrays.toString(soundTrack));
     }
 
