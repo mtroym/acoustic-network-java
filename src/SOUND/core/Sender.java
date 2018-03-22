@@ -63,8 +63,8 @@ public class Sender {
     }
 
 
-    public static AudioFormat getFormat() {
-        int SAMPLE_SIZE = 8;
+    private static AudioFormat getFormat() {
+        int SAMPLE_SIZE = 16;
         return new AudioFormat(SAMPLE_RATE,
             SAMPLE_SIZE, 1, true, true);
     }

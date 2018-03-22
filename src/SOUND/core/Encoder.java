@@ -3,7 +3,6 @@ package SOUND.core;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.LinkedList;
 
 import static java.lang.System.exit;
@@ -12,15 +11,16 @@ import static java.lang.System.exit;
 public class Encoder {
     private static float SAMPLE_RATE = 44100;
     private static int FRAME_SIZE = 100;
-    private static float CARRIER1_FREQ = 10000;
+    private static float CARRIER1_FREQ = 3000;
     private static float CARRIER0_FREQ = 1000;
     private static int PREAMBLE_SIZE = 440;
     private static double CUTOFF_1 = 2e3;
     private static double CUTOFF_2 = 10e3;
-    private static int BIT_SAMPLE = 44;
+    private static int BIT_SAMPLE = 88;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static double AMPLE = 60;
+    private static int INTERVAL_BIT = 440; // ~0.01s
 
 
     private static byte[] generateWave(int sample, float carrier) {
@@ -102,7 +102,7 @@ public class Encoder {
 
 
         // TODO : Send package by package.
-
+        byte[] totalTrack = new byte[0];
         int numPkgs = pkgs.size();
         for (int i = 0; i < numPkgs; i++) {
             byte soundTrack[] = getPreamble();
@@ -114,10 +114,12 @@ public class Encoder {
                     soundTrack = utils.addArray(soundTrack, FRAME1);
                 }
             }
-            System.out.println(Arrays.toString(soundTrack));
-            Sender.sendByte(soundTrack);
+            totalTrack = utils.addArray(totalTrack, soundTrack);
+            byte[] zeros = new byte[INTERVAL_BIT];
+            totalTrack = utils.addArray(totalTrack, zeros);
         }
-
+//        System.out.println(Arrays.toString(totalTrack));
+        Sender.sendByte(totalTrack);
 
         System.out.println("=> end debug");
 //        System.out.println(Arrays.toString(soundTrack));
