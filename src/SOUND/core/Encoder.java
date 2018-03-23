@@ -14,6 +14,8 @@ public class Encoder {
     private static int FRAME_SIZE = 100;
     private static float CARRIER1_FREQ = 3000;
     private static float CARRIER0_FREQ = 1000;
+    private static double CARRIER1_PHA = 0.5;
+    private static double CARRIER0_PHA = 0;
     private static int PREAMBLE_SIZE = 440;
     private static double CUTOFF_1 = 2e3;
     private static double CUTOFF_2 = 10e3;
@@ -24,7 +26,7 @@ public class Encoder {
     private static int INTERVAL_BIT = 440; // ~0.01s
 
 
-    private static byte[] generateWave(int sample, float carrier) {
+    private static byte[] generateWave(int sample, float carrier, double phrase, int sizeAmp) {
         byte[] wave = new byte[sample];
         for (int i = 0; i < sample; i++) {
             wave[i] = (byte) (/*carrier / CARRIER0_FREQ */ AMPLE * Math.sin(2 * Math.PI * carrier * i / SAMPLE_RATE));
@@ -51,16 +53,18 @@ public class Encoder {
     }
 
     private static byte[] getPreamble() {
-        byte[] preamble = new byte[PREAMBLE_SIZE];
-        double phaseIncre = (CUTOFF_2 - CUTOFF_1 )/ PREAMBLE_SIZE / 2;
-
-        for (int i = 0; i < PREAMBLE_SIZE >> 1 ; i++){
-            double phase = ((double) i / SAMPLE_RATE ) * (i * phaseIncre + CUTOFF_1);
-            double signal = AMPLE * (Math.sin(2 * Math.PI * phase));
-            preamble[i] = (byte) signal;
-            preamble[PREAMBLE_SIZE - i - 1] = preamble[i];
-        }
-        return preamble;
+//        byte[] preamble = new byte[PREAMBLE_SIZE];
+//        double phaseIncre = (CUTOFF_2 - CUTOFF_1 )/ PREAMBLE_SIZE / 2;
+//
+//        for (int i = 0; i < PREAMBLE_SIZE >> 1 ; i++){
+//            double phase = ((double) i / SAMPLE_RATE ) * (i * phaseIncre + CUTOFF_1);
+//            double signal = AMPLE * (Math.sin(2 * Math.PI * phase));
+//            preamble[i] = (byte) signal;
+//            preamble[PREAMBLE_SIZE - i - 1] = preamble[i];
+//        }
+//        return preamble;
+        byte single_pre[] = generateWave(440, 6000, 0, 1);
+        return single_pre;
     }
 
 
@@ -92,8 +96,8 @@ public class Encoder {
 
     public static void main(String args[]) throws IOException, InterruptedException {
         System.out.println("=> Setup carriers!!!!.....");
-        FRAME0 = generateWave(BIT_SAMPLE, CARRIER0_FREQ);
-        FRAME1 = generateWave(BIT_SAMPLE, CARRIER1_FREQ);
+        FRAME0 = generateWave(BIT_SAMPLE, CARRIER0_FREQ, CARRIER0_PHA, 1);
+        FRAME1 = generateWave(BIT_SAMPLE, CARRIER1_FREQ, CARRIER1_PHA, 1);
         String current = new java.io.File(".").getCanonicalPath();
         LinkedList dataList = getFile(current + "/text/input.txt");
 
