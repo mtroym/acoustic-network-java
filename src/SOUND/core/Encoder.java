@@ -3,6 +3,7 @@ package SOUND.core;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import static java.lang.System.exit;
@@ -115,6 +116,7 @@ public class Encoder {
                 }
             }
             totalTrack = utils.addArray(totalTrack, soundTrack);
+            System.out.println(Arrays.toString(soundTrack));
             byte[] zeros = new byte[INTERVAL_BIT];
             totalTrack = utils.addArray(totalTrack, zeros);
         }
@@ -122,7 +124,7 @@ public class Encoder {
         Sender.sendByte(totalTrack);
 
         System.out.println("=> end debug");
-//        System.out.println(Arrays.toString(soundTrack));
+//        System.out.println(Arrays.toString(totalTrack));
     }
 
 
