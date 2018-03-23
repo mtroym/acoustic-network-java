@@ -131,8 +131,55 @@ public class Receiver {
         return data;
     }
 
+    public static byte[][] smooth(byte[][] data, byte[] carrier){
+        //TODO;
+
+        return data;
+    }
+
+    public static byte sum(byte[][] data, int index0, int index1){
+        //TODO;
+        byte[] ret = new byte[1];
+
+        return ret[0];
+    }
+
     public static void main(String args[]) throws IOException{
-        Recorder();
+        byte[] data = Recorder();
+        int[] power_debug = new int[data.length];
+        byte curSample;
+        int power = 0;
+        byte[][] decodeFIFO;
+        byte[][] decodeFIFO_removecarrier;
+        byte[] carrier = new byte[0]; //TODO: 载波数据；
+        int startIndex = 0;
+        int[] startIndexDebug = new int[data.length];
+
+
+        for(int i=0; i<data.length; i++){
+            curSample = data[i];
+            power = power*(1-1/64) + curSample ^2/64;
+            power_debug[i] = power;
+            if(STATE == 0){
+                // Todo: when state == 0(sync):
+
+
+            }else if(STATE == 1){ //decode;
+                decodeFIFO = new byte[data.length][8];
+                if(decodeFIFO.length == 44*108){
+                    //decode:
+                    decodeFIFO_removecarrier = smooth(decodeFIFO, carrier);
+                    byte[] decodeFIFO_power_bit = new byte[108];
+                    for(int j=0; j<107; i++){
+                        decodeFIFO_power_bit[j+1] = sum(decodeFIFO_removecarrier, 10+j*44, 30+j*44);
+                    }
+                    //TODO: check CRC;
+                    startIndex = 0;
+                    STATE = 0;
+                }
+            }
+        }
+
     }
 
     /* 写入Txt文件 */
