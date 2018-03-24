@@ -105,9 +105,8 @@ public class Receiver {
     }
 
     public static byte[] Recorder(){
-        AudioFormat audioFormat=Sender.getFormat();
-        byte data[] = new byte[(int) (audioFormat.getSampleRate() * audioFormat.getFrameSize())];
-        byte out[] = new byte[(int) (audioFormat.getSampleRate() * audioFormat.getFrameSize())];
+        AudioFormat audioFormat = Sender.getFormat();
+        byte data[] = new byte[4];
 
         try{
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat);
@@ -119,19 +118,26 @@ public class Receiver {
             targetDataLine.start();
             sourceDataLine.start();
             int readBytes = 0;
-            int count = 0;
+            int offset=0;
+
             byte[] tmp = new byte[4];
             while (readBytes!=-1){
                 readBytes = targetDataLine.read(tmp, 0, tmp.length);
-                data[count] = tmp[0];
                 sourceDataLine.write(tmp, 0, readBytes);
-                count++;
-
+                //test out;
+                // 这个是输出每个byte的hex；
+                for(int i=0; i<tmp.length; i++){
+                    byte cur = tmp[i];
+                    System.out.println(Integer.toHexString(cur));
+                }
+                // 这个是直接转string；
+                System.out.write(tmp, 0, readBytes);
+                offset+=4;
             }
-            sourceDataLine.stop();
-            targetDataLine.stop();
+           // sourceDataLine.stop();
+            //targetDataLine.stop();
         }catch (Exception e){
-            e.printStackTrace();
+           e.printStackTrace();
         }
         return data;
     }
@@ -151,6 +157,7 @@ public class Receiver {
 
     public static void main(String args[]) throws IOException{
         byte[] data = Recorder();
+        /*
         int[] power_debug = new int[data.length];
         byte curSample;
         int power = 0;
@@ -183,7 +190,7 @@ public class Receiver {
                     STATE = 0;
                 }
             }
-        }
+        }*/
 
     }
 
