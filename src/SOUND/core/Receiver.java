@@ -115,29 +115,36 @@ public class Receiver {
             info = new DataLine.Info(SourceDataLine.class, audioFormat);
             SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
             sourceDataLine.open(audioFormat);
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            FileOutputStream FOS = new FileOutputStream(new File("C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.pcm"));
             targetDataLine.start();
             sourceDataLine.start();
-            int readBytes = 0;
-            int offset=0;
 
-            byte[] tmp = new byte[4];
+            int readBytes = 0;
+
+            byte[] tmp = new byte[8];
             while (readBytes!=-1){
                 readBytes = targetDataLine.read(tmp, 0, tmp.length);
+                FOS.write(tmp,0,readBytes);
+                outputStream.write(tmp, 0, readBytes);
                 sourceDataLine.write(tmp, 0, readBytes);
                 //test out;
-                // 这个是输出每个byte的hex；
-                for(int i=0; i<tmp.length; i++){
-                    byte cur = tmp[i];
-                    System.out.println(Integer.toHexString(cur));
-                }
-                // 这个是直接转string；
-                System.out.write(tmp, 0, readBytes);
-                offset+=4;
+            //    System.out.println(Arrays.toString(tmp));
+                //System.out.write(tmp);
+
+                /*for(int i=0; i<readBytes; i++){
+                    System.out.println(Arrays.toString(tmp));
+                //    System.out.println((float)tmp[i]+",");
+                }*/
             }
-           // sourceDataLine.stop();
-            //targetDataLine.stop();
+            sourceDataLine.drain();
+            sourceDataLine.close();
+            targetDataLine.drain();
+            targetDataLine.close();
+            System.out.println(outputStream.toByteArray());
+            FOS.close();
         }catch (Exception e){
-           e.printStackTrace();
+            e.printStackTrace();
         }
         return data;
     }
@@ -166,16 +173,12 @@ public class Receiver {
         byte[] carrier = new byte[0]; //TODO: 载波数据；
         int startIndex = 0;
         int[] startIndexDebug = new int[data.length];
-
-
         for(int i=0; i<data.length; i++){
             curSample = data[i];
             power = power*(1-1/64) + curSample ^2/64;
             power_debug[i] = power;
             if(STATE == 0){
                 // Todo: when state == 0(sync):
-
-
             }else if(STATE == 1){ //decode;
                 decodeFIFO = new byte[data.length][8];
                 if(decodeFIFO.length == 44*108){
