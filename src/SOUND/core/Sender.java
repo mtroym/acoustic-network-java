@@ -64,9 +64,8 @@ public class Sender {
 
 
     public static AudioFormat getFormat() {
-        int SAMPLE_SIZE = 8;
-        return new AudioFormat(SAMPLE_RATE,
-            SAMPLE_SIZE, 1, true, true);
+        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,44100,
+            16, 1,2, 44100, false);
     }
 
     public static void main(String args[]) {

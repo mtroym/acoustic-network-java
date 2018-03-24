@@ -106,7 +106,8 @@ public class Receiver {
 
     public static byte[] Recorder(){
         AudioFormat audioFormat = Sender.getFormat();
-        byte data[] = new byte[4];
+       // audioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,44100,16,1,2,44100,false);
+        byte data[] = new byte[8];
 
         try{
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat);
@@ -122,7 +123,7 @@ public class Receiver {
 
             int readBytes = 0;
 
-            byte[] tmp = new byte[4];
+            byte[] tmp = new byte[320];
             while (readBytes!=-1){
                 readBytes = sourceDataLine.write(tmp, 0, tmp.length);
                 FOS.write(tmp,0,readBytes);
