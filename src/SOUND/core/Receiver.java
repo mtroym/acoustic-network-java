@@ -122,31 +122,21 @@ public class Receiver {
 
             int readBytes = 0;
 
-            byte[] tmp = new byte[8];
+            byte[] tmp = new byte[4];
             while (readBytes!=-1){
-                readBytes = targetDataLine.read(tmp, 0, tmp.length);
+                readBytes = sourceDataLine.write(tmp, 0, tmp.length);
                 FOS.write(tmp,0,readBytes);
-                outputStream.write(tmp, 0, readBytes);
-                sourceDataLine.write(tmp, 0, readBytes);
-                //test out;
-            //    System.out.println(Arrays.toString(tmp));
-                //System.out.write(tmp);
-
-                /*for(int i=0; i<readBytes; i++){
-                    System.out.println(Arrays.toString(tmp));
-                //    System.out.println((float)tmp[i]+",");
-                }*/
+                targetDataLine.read(tmp, 0, readBytes);
             }
             sourceDataLine.drain();
             sourceDataLine.close();
             targetDataLine.drain();
             targetDataLine.close();
-            System.out.println(outputStream.toByteArray());
             FOS.close();
         }catch (Exception e){
             e.printStackTrace();
         }
-        return data;
+        return data;    //TODO: 注意现在输出是PCM文件；
     }
 
     public static byte[][] smooth(byte[][] data, byte[] carrier){
