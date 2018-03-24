@@ -106,7 +106,7 @@ public class Receiver {
 
     public static byte[] Recorder(){
         AudioFormat audioFormat=Sender.getFormat();
-        byte data[] = new byte[4];
+        byte data[] = new byte[(int) (audioFormat.getSampleRate() * audioFormat.getFrameSize())];
         byte out[] = new byte[(int) (audioFormat.getSampleRate() * audioFormat.getFrameSize())];
 
         try{
@@ -118,10 +118,15 @@ public class Receiver {
             sourceDataLine.open(audioFormat);
             targetDataLine.start();
             sourceDataLine.start();
-            int readBytes=0;
+            int readBytes = 0;
+            int count = 0;
+            byte[] tmp = new byte[4];
             while (readBytes!=-1){
-                readBytes = targetDataLine.read(data, 0, data.length);
-                sourceDataLine.write(data, 0, readBytes);
+                readBytes = targetDataLine.read(tmp, 0, tmp.length);
+                data[count] = tmp[0];
+                sourceDataLine.write(tmp, 0, readBytes);
+                count++;
+
             }
             sourceDataLine.stop();
             targetDataLine.stop();
