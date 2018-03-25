@@ -1,17 +1,14 @@
 package SOUND.core;
 
-import SOUND.Recorder;
-import SOUND.core.Sender.*;
-import com.sun.prism.impl.Disposer;
-import org.omg.IOP.TAG_RMI_CUSTOM_MAX_STREAM_FORMAT;
-
+import javax.sound.sampled.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.Arrays;
-import java.util.LinkedList;
-import javax.sound.sampled.*;
-import java.io.IOException;
 
-public class Receiver {
+
+public class Receiver extends JFrame {
     private static float SAMPLE_RATE = 44100;
     private static int FRAME_SIZE = 92;
     private static float CARRIER1_FREQ = 10000;
@@ -24,6 +21,10 @@ public class Receiver {
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static int STATE;   // 0: sync; 1: decode;
+    private static int BUFF_SIZE = 320;
+    private static boolean inReading = true;
+
+
 
     public static byte[] Decorder(byte[] data){ //Suppose per block Input;
         int lastSample = 0;
@@ -104,27 +105,86 @@ public class Receiver {
         return out;
     }
 
+    ByteArrayOutputStream out;
+
+
+    public Receiver() {
+        super("Capture Sound Demo");
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        Container content = getContentPane();
+
+        final JButton capture = new JButton("Capture");
+        final JButton stop = new JButton("Stop");
+//        final JButton play = new JButton("Play");
+
+        capture.setEnabled(true);
+        stop.setEnabled(false);
+//        play.setEnabled(false);
+
+        ActionListener captureListener = e -> {
+            capture.setEnabled(false);
+            stop.setEnabled(true);
+            inReading = true;
+            captureAudio();
+
+//            play.setEnabled(false);
+//            byte[] data = Recorder();
+        };
+        capture.addActionListener(captureListener);
+        content.add(capture, BorderLayout.NORTH);
+
+        ActionListener stopListener = e -> {
+            capture.setEnabled(true);
+            stop.setEnabled(false);
+//            play.setEnabled(true);
+            inReading = false;
+//            System.out.println(out);
+            System.out.println(Arrays.toString(out.toByteArray()));
+            playAudio();
+        };
+        stop.addActionListener(stopListener);
+        content.add(stop, BorderLayout.CENTER);
+
+//    ActionListener playListener = e -> playAudio();
+//        play.addActionListener(playListener);
+//        content.add(play, BorderLayout.SOUTH);
+    }
+
+    public static byte[][] smooth(byte[][] data, byte[] carrier) {
+        //TODO;
+
+        return data;
+    }
+
+    public static byte sum(byte[][] data, int index0, int index1) {
+        //TODO;
+        byte[] ret = new byte[1];
+
+        return ret[0];
+    }
+
     public static byte[] Recorder(){
-        AudioFormat audioFormat = Sender.getFormat();
+        final AudioFormat audioFormat = Sender.getFormat();
        // audioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,44100,16,1,2,44100,false);
         byte data[] = new byte[8];
 
         try{
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat);
-            TargetDataLine targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
+            final TargetDataLine targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
             targetDataLine.open(audioFormat);
             info = new DataLine.Info(SourceDataLine.class, audioFormat);
-            SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
+            final SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
             sourceDataLine.open(audioFormat);
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            FileOutputStream FOS = new FileOutputStream(new File("C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.pcm"));
+            String current = new java.io.File(".").getCanonicalPath();
+            FileOutputStream FOS = new FileOutputStream(new File(current + "/text/1.pcm"));
+//            FileOutputStream FOS = new FileOutputStream(new File("C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.pcm"));
             targetDataLine.start();
             sourceDataLine.start();
 
             int readBytes = 0;
-
-            byte[] tmp = new byte[320];
-            while (readBytes!=-1){
+            byte[] tmp = new byte[BUFF_SIZE];
+            while (inReading && readBytes != -1) {
                 readBytes = sourceDataLine.write(tmp, 0, tmp.length);
                 FOS.write(tmp,0,readBytes);
                 targetDataLine.read(tmp, 0, readBytes);
@@ -140,21 +200,13 @@ public class Receiver {
         return data;    //TODO: 注意现在输出是PCM文件；
     }
 
-    public static byte[][] smooth(byte[][] data, byte[] carrier){
-        //TODO;
-
-        return data;
-    }
-
-    public static byte sum(byte[][] data, int index0, int index1){
-        //TODO;
-        byte[] ret = new byte[1];
-
-        return ret[0];
-    }
-
-    public static void main(String args[]) throws IOException{
-        byte[] data = Recorder();
+    public static void main(String args[]) throws IOException, InterruptedException {
+//        byte[] data = Recorder();
+//        Thread.sleep(1000);
+//        System.out.println(Arrays.toString(data));
+        JFrame frame = new Receiver();
+        frame.pack();
+        frame.show();
         /*
         int[] power_debug = new int[data.length];
         byte curSample;
@@ -186,6 +238,92 @@ public class Receiver {
             }
         }*/
 
+    }
+
+    private void captureAudio() {
+        try {
+            final AudioFormat format = Sender.getFormat();
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            final TargetDataLine line = (TargetDataLine) AudioSystem.getLine(info);
+            line.open(format);
+            line.start();
+            Runnable runner = new Runnable() {
+                int bufferSize = (int) format.getSampleRate() * format.getFrameSize();
+                byte buffer[] = new byte[bufferSize];
+
+                public void run() {
+                    out = new ByteArrayOutputStream();
+                    inReading = true;
+                    try {
+                        while (inReading) {
+                            int count = line.read(buffer, 0, buffer.length);
+                            if (count > 0) {
+                                out.write(buffer, 0, count);
+                            }
+                        }
+                        out.close();
+                    } catch (IOException e) {
+                        System.err.println("I/O problems: " + e);
+                        System.exit(-1);
+                    }
+                }
+            };
+            Thread captureThread = new Thread(runner);
+            captureThread.start();
+        } catch (LineUnavailableException e) {
+            System.err.println("Line unavailable: " + e);
+            System.exit(-2);
+        }
+    }
+
+    private void playAudio() {
+        try {
+            byte audio[] = out.toByteArray();
+            InputStream input = new ByteArrayInputStream(audio);
+            final AudioFormat format = Sender.getFormat();
+            final AudioInputStream ais = new AudioInputStream(input, format,
+                audio.length / format.getFrameSize());
+            DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+            final SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
+            line.open(format);
+            line.start();
+
+            Runnable runner = new Runnable() {
+                int bufferSize = (int) format.getSampleRate() * format.getFrameSize();
+                byte buffer[] = new byte[bufferSize];
+
+                public void run() {
+                    try {
+                        int count;
+                        while ((count = ais.read(buffer, 0, buffer.length)) != -1) {
+                            if (count > 0) {
+                                line.write(buffer, 0, count);
+                            }
+                        }
+                        line.drain();
+                        line.close();
+                    } catch (IOException e) {
+                        System.err.println("I/O problems: " + e);
+                        System.exit(-3);
+                    }
+                }
+            };
+            Thread playThread = new Thread(runner);
+            playThread.start();
+        } catch (LineUnavailableException e) {
+            System.err.println("Line unavailable: " + e);
+            System.exit(-4);
+        }
+    }
+
+    private AudioFormat getFormat() {
+        float sampleRate = 44100;
+        int sampleSizeInBits = 16;
+        int channels = 1;
+        boolean signed = true;
+        boolean bigEndian = true;
+        return new AudioFormat(sampleRate,
+            sampleSizeInBits, channels, signed, bigEndian);
     }
 
     /* 写入Txt文件 */

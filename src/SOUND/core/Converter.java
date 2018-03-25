@@ -1,15 +1,10 @@
 package SOUND.core;
 
-import SOUND.Recorder;
-import SOUND.core.Sender.*;
-import com.sun.prism.impl.Disposer;
-import org.omg.IOP.TAG_RMI_CUSTOM_MAX_STREAM_FORMAT;
-
-import java.io.*;
-import java.util.Arrays;
-import java.util.LinkedList;
-import javax.sound.sampled.*;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+
 
 public class Converter {
 
