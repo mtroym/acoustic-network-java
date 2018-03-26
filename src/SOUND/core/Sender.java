@@ -65,7 +65,7 @@ public class Sender {
 
     public static AudioFormat getFormat() {
         return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,44100,
-            16, 1, 1, 44100, false);
+            16, 1, 2, 44100, false);
     }
 
     public static void main(String args[]) {
