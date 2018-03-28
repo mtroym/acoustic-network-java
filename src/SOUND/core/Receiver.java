@@ -326,18 +326,6 @@ public class Receiver extends JFrame {
         return out;
     }
 
-    public static byte[][] smooth(byte[][] data, byte[] carrier) {
-        //TODO;
-
-        return data;
-    }
-
-    public static byte sum(byte[][] data, int index0, int index1) {
-        //TODO;
-        byte[] ret = new byte[1];
-
-        return ret[0];
-    }
 
     public static byte[] Recorder(){
         final AudioFormat audioFormat = Sender.getFormat();
