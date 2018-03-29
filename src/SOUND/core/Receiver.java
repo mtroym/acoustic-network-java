@@ -73,7 +73,7 @@ public class Receiver extends JFrame {
             for(int i=0; i<doubleArray.length; i++){
                 lowByte = byteArray[i*2];
                 highByte = byteArray[i*2 + 1];
-                short tmp = (short) ((lowByte & 0x00FF) << 8 | (highByte & 0x00FF));
+                short tmp = (short) ((highByte & 0x00FF) << 8 | (lowByte & 0x00FF));
                 doubleArray[i] = tmp / 32768f;
                 System.out.println(doubleArray[i]);
             }
