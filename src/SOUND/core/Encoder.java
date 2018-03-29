@@ -3,7 +3,6 @@ package SOUND.core;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.LinkedList;
 
 import static java.lang.System.exit;
@@ -19,17 +18,19 @@ public class Encoder {
     private static int PREAMBLE_SIZE = 440;
     private static double CUTOFF_1 = 2e3;
     private static double CUTOFF_2 = 10e3;
-    private static int BIT_SAMPLE = 88;
+    private static int BIT_SAMPLE = 44;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
-    private static double AMPLE = 60;
+    private static double AMPLE = 127;
     private static int INTERVAL_BIT = 440; // ~0.01s
 
 
     private static byte[] generateWave(int sample, float carrier, double phrase, int sizeAmp) {
-        byte[] wave = new byte[sample];
+        byte[] wave = new byte[sample * 2];
         for (int i = 0; i < sample; i++) {
-            wave[i] = (byte) (/*carrier / CARRIER0_FREQ */ AMPLE * Math.sin(2 * Math.PI * carrier * i / SAMPLE_RATE));
+            int data = (int) (/*carrier / CARRIER0_FREQ */ AMPLE * Math.sin(2 * Math.PI * carrier * i / SAMPLE_RATE));
+            wave[i * 2 + 1] = (((byte) (data & 0x00FF)));
+            wave[i * 2 + 0] = (((byte) ((data >> 8) & 0x00FF)));
         }
         return wave;
     }
@@ -52,27 +53,29 @@ public class Encoder {
         return linkedList;
     }
 
-    private static byte[] getPreamble() {
-//        byte[] preamble = new byte[PREAMBLE_SIZE];
-//        double phaseIncre = (CUTOFF_2 - CUTOFF_1 )/ PREAMBLE_SIZE / 2;
-//
-//        for (int i = 0; i < PREAMBLE_SIZE >> 1 ; i++){
-//            double phase = ((double) i / SAMPLE_RATE ) * (i * phaseIncre + CUTOFF_1);
-//            double signal = AMPLE * (Math.sin(2 * Math.PI * phase));
-//            preamble[i] = (byte) signal;
-//            preamble[PREAMBLE_SIZE - i - 1] = preamble[i];
-//        }
-//        return preamble;
-        byte single_pre[] = generateWave(440, 6000, 0, 1);
-        return single_pre;
+    public static byte[] getPreamble() {
+        byte[] preamble = new byte[PREAMBLE_SIZE * 2];
+        double phaseIncre = (CUTOFF_2 - CUTOFF_1) / PREAMBLE_SIZE / 2;
+
+        for (int i = 0; i < PREAMBLE_SIZE >> 1; i++) {
+            double phase = ((double) i / SAMPLE_RATE) * (i * phaseIncre + CUTOFF_1);
+            double signal = AMPLE * (Math.sin(2 * Math.PI * phase));
+            preamble[i * 2] = (((byte) (((int) signal >> 8) & 0x00FF)));
+            preamble[i * 2 + 1] = (((byte) ((int) signal & 0x00FF)));
+            preamble[PREAMBLE_SIZE * 2 - i * 2 - 2] = preamble[i * 2 + 0];
+            preamble[PREAMBLE_SIZE * 2 - i * 2 - 1] = preamble[i * 2 + 1];
+        }
+        return preamble;
+//        byte single_pre[] = generateWave(440, 500, 0, 3);
+//        return single_pre;
     }
 
 
     private static LinkedList packUp(LinkedList msg) {
         int totalSize = msg.size();
-        System.out.println(totalSize);
+//        System.out.println(totalSize);
         int numPkg = (int) Math.ceil(totalSize / (double) FRAME_SIZE);
-        System.out.println(numPkg);
+//        System.out.println(numPkg);
         if (numPkg > 255) {
             exit(-4);
         }
@@ -120,7 +123,7 @@ public class Encoder {
                 }
             }
             totalTrack = utils.addArray(totalTrack, soundTrack);
-            System.out.println(Arrays.toString(soundTrack));
+//            System.out.println(Arrays.toString(soundTrack));
             byte[] zeros = new byte[INTERVAL_BIT];
             totalTrack = utils.addArray(totalTrack, zeros);
         }

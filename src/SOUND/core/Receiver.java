@@ -10,20 +10,25 @@ import java.util.Arrays;
 
 public class Receiver extends JFrame {
     private static float SAMPLE_RATE = 44100;
-    private static int FRAME_SIZE = 92;
-    private static float CARRIER1_FREQ = 10000;
-    private static float CARRIER0_FREQ = 5000;
+    private static int FRAME_SIZE = 100;
+    private static float CARRIER1_FREQ = 3000;
+    private static float CARRIER0_FREQ = 1000;
     private static int PREAMBLE_SIZE = 440;
     private static double CUTOFF_1 = 2e3;
     private static double CUTOFF_2 = 10e3;
     private static double AMP_PREAMPLE = 127;
-    private static int BIT_SAMPLE = 44;
+    private static int BIT_SAMPLE = 88;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static int STATE;   // 0: sync; 1: decode;
     private static int BUFF_SIZE = 320;
     private static boolean inReading = true;
     private static ByteArrayOutputStream audioData;
+
+
+    private static double[] a = {1, -2.92508465715101, 5.62610258408621, -7.02423818583765, 6.75270214737583, -4.64570534779699, 2.45442121731456, -0.831470198481832, 0.188252514825397};
+
+    private static double[] b = {0.00478064169221886, 0, -0.0191225667688755, 0, 0.0286838501533132, 0, -0.0191225667688755, 0, 0.00478064169221886};
 
     public static double[] smooth(double[] in, double[] out, int N){
         int i = 0;
@@ -65,33 +70,7 @@ public class Receiver extends JFrame {
         return result;
     }
 
-    public static double[] byteToDouble(byte[] byteArray){
-        double[] doubleArray = new double[(int)Math.ceil(byteArray.length / 2)];
-        byte lowByte;
-        byte highByte;
-        try {
-            for(int i=0; i<doubleArray.length; i++){
-                lowByte = byteArray[i*2];
-                highByte = byteArray[i*2 + 1];
-                short tmp = (short) ((highByte & 0x00FF) << 8 | (lowByte & 0x00FF));
-                doubleArray[i] = tmp / 32768f;
-                //System.out.println(doubleArray[i]);
-            }
-            //OUTPUT for TEST;
-            FileWriter FW = new FileWriter(new File("C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.txt"));
-            for(int i=0; i<doubleArray.length; i++){
-                FW.write(String.valueOf(doubleArray[i]));
-                FW.write("\r\n");
-                System.out.println(String.valueOf(doubleArray[i]));
-            }
-            FW.close();
-        }catch (Exception e){
-            System.err.println("Failed to turn ByteArray to DoubleArray: " + e);
-            System.exit(-1);
-        }
-        return doubleArray;
-    }
-
+    private static boolean DEBUG = false;
 
     public Receiver() {
         super("Capture Sound Demo");
@@ -116,11 +95,53 @@ public class Receiver extends JFrame {
             capture.setEnabled(true);
             stop.setEnabled(false);
             inReading = false;
-            System.out.println(Arrays.toString(audioData.toByteArray()));
             playAudio();
+//            try {
+//                System.out.println("=> Opening....");
+//                Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));
+//            } catch (IOException e1) {
+//                e1.printStackTrace();
+//            }
+            System.out.println(Arrays.toString(byteToDouble(audioData.toByteArray())));
         };
         stop.addActionListener(stopListener);
         content.add(stop, BorderLayout.CENTER);
+    }
+
+    public static double[] byteToDouble(byte[] byteArray) {
+        double[] doubleArray = new double[(int) byteArray.length / 2];
+        byte lowByte;
+        byte highByte;
+        try {
+            for (int i = 0; i < doubleArray.length; i++) {
+                lowByte = byteArray[i * 2];
+                highByte = byteArray[i * 2 + 1];
+                short tmp = (short) ((highByte & 0x00FF) << 8 | (lowByte & 0x00FF));
+                if (Math.abs(tmp / 32768f) < 0.01) {
+                    doubleArray[i] = 0;
+                } else {
+                    doubleArray[i] = tmp / 32768f;
+                }
+                //System.out.println(doubleArray[i]);
+            }
+            if (DEBUG) {
+                //OUTPUT for TEST;
+                String current = new java.io.File(".").getCanonicalPath();
+                FileWriter FW = new FileWriter(new File(current + "/debug.log"));
+//                for (int i = 0; i < doubleArray.length; i++) {
+//                    FW.write(String.valueOf(doubleArray[i]));
+//                    FW.write("\r\n");
+////                System.out.println(String.valueOf(doubleArray[i]));
+//                }
+                FW.write(Arrays.toString(doubleArray));
+                FW.close();
+            }
+//            System.out.println(Arrays.toString(doubleArray));
+        } catch (Exception e) {
+            System.err.println("Failed to turn ByteArray to DoubleArray: " + e);
+            System.exit(-1);
+        }
+        return doubleArray;
     }
 
     private void captureAudio() {
@@ -132,7 +153,7 @@ public class Receiver extends JFrame {
             targetDataLine.start();
 
             Runnable runner = new Runnable() {
-                int bufferSize = (int) format.getSampleRate() * format.getFrameSize();
+                int bufferSize = (int) format.getSampleRate() * format.getFrameSize() / 100;
                 byte buffer[] = new byte[bufferSize];
 
                 public void run() {
@@ -142,6 +163,7 @@ public class Receiver extends JFrame {
                         while (inReading) {
                             int count = targetDataLine.read(buffer, 0, buffer.length);
                             if (count > 0) {
+//                                System.out.println(Arrays.toString(buffer));
                                 audioData.write(buffer, 0, count);
                             }
                         }
@@ -176,7 +198,7 @@ public class Receiver extends JFrame {
             sourceDataLine.start();
 
             Runnable runner = new Runnable() {
-                int bufferSize = (int) format.getSampleRate() * format.getFrameSize();
+                int bufferSize = (int) format.getSampleRate() * format.getFrameSize() / 100 /*44100 / 100*/;
                 byte buffer[] = new byte[bufferSize];
 
                 public void run() {
@@ -184,6 +206,7 @@ public class Receiver extends JFrame {
                         int count;
                         while ((count = ais.read(buffer, 0, buffer.length)) != -1) {
                             if (count > 0) {
+//                                System.out.println(Arrays.toString(buffer));
                                 sourceDataLine.write(buffer, 0, count);
                             }
                         }
@@ -202,18 +225,6 @@ public class Receiver extends JFrame {
             System.exit(-4);
         }
     }
-
-    private AudioFormat getFormat() {
-        float sampleRate = 44100;
-        int sampleSizeInBits = 16;
-        int frameSize = 2;
-        int frameFreq = 44100;
-        int channels = 1;
-        boolean bigEndian = true;
-        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sampleRate,
-            sampleSizeInBits, channels, frameSize, frameFreq, bigEndian);
-    }
-
 
     public static void main(String args[]) throws IOException, InterruptedException {
 //        byte[] data = Recorder();

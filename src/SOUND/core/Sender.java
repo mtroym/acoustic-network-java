@@ -20,12 +20,14 @@ public class Sender {
         double amp = 60;
         float t = 10;
         int bufferSize = round(t * SAMPLE_RATE);
-        byte[] data = new byte[bufferSize];
+        byte[] data = new byte[bufferSize * 2];
         double timeIncrement = 1 / SAMPLE_RATE;
-
+//        (short) ((highByte & 0x00FF) << 8 | (lowByte & 0x00FF))
         for (int i = 0; i < bufferSize; i++) {
-            data[i] = (byte) (amp * (Math.sin(2 * Math.PI * 1000 * time) +
-                Math.sin(2 * Math.PI * 10000 * time)));
+            int data1 = (int) (amp * (Math.sin(2 * Math.PI * 1000 * time) +
+                Math.sin(2 * Math.PI * 5000 * time)));
+            data[2 * i] = (byte) (data1 & 0x00FF);
+            data[2 * i + 1] = (byte) ((data1 >> 8) & 0x00FF);
             time += timeIncrement;
         }
         return data;
@@ -47,6 +49,7 @@ public class Sender {
                 try {
                     while ((count = audioInputStream.read(audio, 0, audio.length)) != 1) {
                         if (count > 0) {
+//                            System.out.println(Arrays.toString(audio));
                             sourceDataLine.write(audio, 0, count);
                         }
                     }
