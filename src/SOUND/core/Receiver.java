@@ -75,8 +75,16 @@ public class Receiver extends JFrame {
                 highByte = byteArray[i*2 + 1];
                 short tmp = (short) ((highByte & 0x00FF) << 8 | (lowByte & 0x00FF));
                 doubleArray[i] = tmp / 32768f;
-                System.out.println(doubleArray[i]);
+                //System.out.println(doubleArray[i]);
             }
+            //OUTPUT for TEST;
+            FileWriter FW = new FileWriter(new File("C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.txt"));
+            for(int i=0; i<doubleArray.length; i++){
+                FW.write(String.valueOf(doubleArray[i]));
+                FW.write("\r\n");
+                System.out.println(String.valueOf(doubleArray[i]));
+            }
+            FW.close();
         }catch (Exception e){
             System.err.println("Failed to turn ByteArray to DoubleArray: " + e);
             System.exit(-1);
@@ -138,6 +146,7 @@ public class Receiver extends JFrame {
                             }
                         }
                         audioData.close();
+                        byteToDouble(audioData.toByteArray());
                         targetDataLine.drain();
                         targetDataLine.close();
                     } catch (IOException e) {
