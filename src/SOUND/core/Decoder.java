@@ -9,9 +9,9 @@ public class Decoder {
 
     private static float SAMPLE_RATE = Encoder.SAMPLE_RATE;
     private static int FRAME_SIZE = Encoder.FRAME_SIZE;
-    private static int PREAMBLE_SIZE = 440;
-    private static int BIT_SAMPLE = 88;
-    private static int INTERVAL_BIT = 440; // ~0.01s
+    private static int PREAMBLE_SIZE = Encoder.PREAMBLE_SIZE;
+    private static int BIT_SAMPLE = Encoder.BIT_SAMPLE;
+    private static int INTERVAL_BIT = Encoder.INTERVAL_BIT; // ~0.01s
     private static int CRC_SIZE = 0;
 
 
@@ -55,8 +55,8 @@ public class Decoder {
                 if ((syncPowerDebug[i] > power * 2) && (syncPowerDebug[i] > syncLocalMax) && (syncPowerDebug[i] > 0.05)) {
                     syncLocalMax = syncPowerDebug[i];
                     startIndex = i;
-                } else if (i - startIndex > 440 && startIndex != 0) {
-                    System.out.println("=> GOtcha! Preamble!");
+                } else if (i - startIndex > PREAMBLE_SIZE && startIndex != 0) {
+//                    System.out.println("=> GOtcha! Preamble!");
                     startIndexDebug[startIndex] = 10;
                     syncLocalMax = 0;
                     syncFIFO = new double[PREAMBLE_SIZE];
@@ -68,7 +68,7 @@ public class Decoder {
                 decodeLen += 1;
                 decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
                 if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
-                    System.out.println("=> DECODING...");
+//                    System.out.println("=> DECODING...");
 //                    String current = new java.io.File(".").getCanonicalPath();
 //                    FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
                     double info[] = new double[(FRAME_SIZE + 8 + CRC_SIZE)];
@@ -86,7 +86,7 @@ public class Decoder {
                     // TODO CRC;
                     // TODO Check pkg
                     isDecode = false;
-                    System.out.println("OK");
+//                    System.out.println("OK");
                     startIndex = 0;
                     decodeFIFO = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
                 }

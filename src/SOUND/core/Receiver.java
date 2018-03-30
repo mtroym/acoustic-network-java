@@ -8,15 +8,14 @@ import java.io.*;
 
 
 public class Receiver extends JFrame {
-    private static float SAMPLE_RATE = 44100;
-    private static int FRAME_SIZE = 100;
-    private static float CARRIER1_FREQ = 3000;
-    private static float CARRIER0_FREQ = 1000;
-    private static int PREAMBLE_SIZE = 440;
-    private static double CUTOFF_1 = 2e3;
-    private static double CUTOFF_2 = 10e3;
-    private static double AMP_PREAMPLE = 127;
-    private static int BIT_SAMPLE = 88;
+    private static float SAMPLE_RATE = Encoder.SAMPLE_RATE;
+    private static int FRAME_SIZE = Encoder.FRAME_SIZE;
+    private static float CARRIER1_FREQ = Encoder.CARRIER1_FREQ;
+    private static float CARRIER0_FREQ = Encoder.CARRIER0_FREQ;
+    private static int PREAMBLE_SIZE = Encoder.PREAMBLE_SIZE;
+    private static double CUTOFF_1 = Encoder.PREAMBLE_SIZE;
+    private static double CUTOFF_2 = Encoder.PREAMBLE_SIZE;
+    private static int BIT_SAMPLE = Encoder.BIT_SAMPLE;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static int STATE;   // 0: sync; 1: decode;
@@ -47,7 +46,7 @@ public class Receiver extends JFrame {
             capture.setEnabled(true);
             stop.setEnabled(false);
             inReading = false;
-            playAudio();
+//            playAudio();
             try {
                 System.out.println("=> Opening....");
                 Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));

@@ -10,19 +10,19 @@ import static java.lang.System.exit;
 
 public class Encoder {
     public static float SAMPLE_RATE = 44100;
-    public static int FRAME_SIZE = 100;
-    public static float CARRIER1_FREQ = 6000;
-    public static float CARRIER0_FREQ = 2000;
+    public static int FRAME_SIZE = 200;
+    public static float CARRIER1_FREQ = 5000;
+    public static float CARRIER0_FREQ = 1000;
     private static double CARRIER1_PHA = 0.5;
     private static double CARRIER0_PHA = 0;
-    private static int PREAMBLE_SIZE = 440;
+    public static int PREAMBLE_SIZE = 220;
     private static double CUTOFF_1 = 2000;
     private static double CUTOFF_2 = 10000;
-    private static int BIT_SAMPLE = 88;
+    public static int BIT_SAMPLE = 55;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static double AMPLE = 127;
-    private static int INTERVAL_BIT = 440; // ~0.01s
+    public static int INTERVAL_BIT = 300;
 
 
     private static byte[] generateWave(int sample, float carrier, double phrase, int sizeAmp) {
