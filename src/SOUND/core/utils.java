@@ -1,6 +1,8 @@
 package SOUND.core;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 import static java.lang.System.exit;
 
@@ -82,10 +84,95 @@ public class utils {
         return sumDoubleArray(pointProduct(arr, suc));
     }
 
-    public static void main(String args[]) {
-        double[] a = new double[10];
+
+    public static int maxIdxOfFFT(double[] pha) {
+        double max = 0.0;
+        int maxIdx = 0;
+        for (int i = 0; i < pha.length / 2; i++) {
+            if (Math.abs(pha[i]) > max) {
+                maxIdx = i;
+                max = Math.abs(pha[i]);
+            }
+        }
+        return maxIdx;
+    }
 
 
-        System.out.print(Arrays.toString(shiftDouble(a, 1.1)));
+    public static double minOfArr(double[] arr) {
+        double min = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] < min) {
+                min = arr[i];
+            }
+        }
+        return min;
+    }
+
+
+    public static double maxOfArr(double[] arr) {
+        double max = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] > max) {
+                max = arr[i];
+            }
+        }
+        return max;
+    }
+
+    public static double avgOfArr(double[] arr) {
+        double sum = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            sum += arr[i];
+        }
+        return sum / arr.length;
+    }
+
+
+    public static int bool2int(boolean bool) {
+        if (bool) return 1;
+        else return 0;
+    }
+
+
+    public static int[] normalizePha(double[] pha) {
+        int[] normalized = new int[pha.length];
+        double mean = avgOfArr(pha);
+        for (int i = 0; i < pha.length; i++) {
+            normalized[i] = bool2int(pha[i] > mean);
+        }
+        return normalized;
+    }
+
+    public static String ints2String(int[] code) {
+        StringBuilder a = new StringBuilder();
+        for (int c : code) {
+            a.append(String.valueOf(c));
+        }
+        return a.toString();
+    }
+
+    public static double calculateErr(String src, String gen) {
+        LinkedList dataList = Encoder.getFile(src);
+        LinkedList checked = Encoder.getFile(gen);
+        if (checked.size() < dataList.size()) {
+            System.err.println("=> ERR not complete decoding...");
+        }
+        double err = 0;
+        double total = dataList.size();
+        while (dataList.size() != 0) {
+            err += bool2int(dataList.pop() != checked.pop());
+        }
+        return err / total;
+    }
+
+
+    public static void ENDCHECK() throws IOException {
+        String current = new java.io.File(".").getCanonicalPath();
+        double err = calculateErr(current + "/text/input.txt", current + "/text/output.txt") * 100;
+        System.out.println("=> Err rate is: " + String.valueOf(err) + " %");
+    }
+
+    public static void main(String args[]) throws IOException {
+        ENDCHECK();
     }
 }

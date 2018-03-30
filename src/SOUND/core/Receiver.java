@@ -5,7 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.Arrays;
 
 
 public class Receiver extends JFrame {
@@ -25,58 +24,11 @@ public class Receiver extends JFrame {
     private static boolean inReading = true;
     private static ByteArrayOutputStream audioData;
 
-
-    private static double[] a = {1, -2.92508465715101, 5.62610258408621, -7.02423818583765, 6.75270214737583, -4.64570534779699, 2.45442121731456, -0.831470198481832, 0.188252514825397};
-
-    private static double[] b = {0.00478064169221886, 0, -0.0191225667688755, 0, 0.0286838501533132, 0, -0.0191225667688755, 0, 0.00478064169221886};
-
-    public static double[] smooth(double[] in, double[] out, int N){
-        int i = 0;
-        if(N < 5){ // 五点平滑；
-            System.arraycopy(in,0,out,0,in.length);
-        }else{
-            // 头两个；
-            out[0] = ( 3.0 * in[0] + 2.0 * in[1] + in[2] - in[4] ) / 5.0;
-            out[1] = ( 4.0 * in[0] + 3.0 * in[1] + 2 * in[2] + in[3] ) / 10.0;
-            for ( i=2; i <= N-3; i++ ){
-                out[i] = ( in[i-2] + in[i-1] + in[i] + in[i+1] + in[i+2] ) / 5.0; // 平均;
-            }
-            // 最后两个；
-            out[N-2] = ( 4.0 * in[N-1] + 3.0 * in[N-2] + 2 * in[N-3] + in[N-4] ) / 10.0;
-            out[N-1] = ( 3.0 * in[N-1] + 2.0 * in[N-2] + in[N-3] - in[N-5] ) / 5.0;
-        }
-        return out;
-    }
-
-    public static double[] bandPassFilter(double[] data, float[] para1, float[] para2){  // IRR Filter: y[n]+sum^N_1{para1[k]y[n-k]} = sum^M_0{para2[r]x[n-r]};
-        double[] result = new double[data.length];
-        double[] out = new double[para1.length-1];
-        double[] in = new double[para2.length];
-        float y = 0;
-
-        for(int i=0; i<data.length; i++){
-            System.arraycopy(in,0,in,1,in.length-1);
-            in[0] = data[1];
-            for(int j=0; j<para2.length; j++){
-                y += para2[j] * in[j];
-            }
-            for(int j=0; j<para1.length-1; j++){
-                y -= para1[j+1] * out[j];
-            }
-            System.arraycopy(out,0,out,1,out.length);
-            out[0] = y;
-            result[i] = y;
-        }
-        return result;
-    }
-
-    private static boolean DEBUG = false;
-
     public Receiver() {
         super("Capture Sound Demo");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         Container content = getContentPane();
-        final JButton capture = new JButton("Capture");
+        final JButton capture = new JButton("BeginReceive");
         final JButton stop = new JButton("Stop");
 
         capture.setEnabled(true);
@@ -99,10 +51,10 @@ public class Receiver extends JFrame {
             try {
                 System.out.println("=> Opening....");
                 Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));
+                System.out.println("=> End of Decode");
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-            System.out.println(Arrays.toString(byteToDouble(audioData.toByteArray())));
         };
         stop.addActionListener(stopListener);
         content.add(stop, BorderLayout.CENTER);
@@ -122,21 +74,7 @@ public class Receiver extends JFrame {
                 } else {
                     doubleArray[i] = tmp / 32768f;
                 }
-                //System.out.println(doubleArray[i]);
             }
-            if (DEBUG) {
-                //OUTPUT for TEST;
-                String current = new java.io.File(".").getCanonicalPath();
-                FileWriter FW = new FileWriter(new File(current + "/debug.log"));
-//                for (int i = 0; i < doubleArray.length; i++) {
-//                    FW.write(String.valueOf(doubleArray[i]));
-//                    FW.write("\r\n");
-////                System.out.println(String.valueOf(doubleArray[i]));
-//                }
-                FW.write(Arrays.toString(doubleArray));
-                FW.close();
-            }
-//            System.out.println(Arrays.toString(doubleArray));
         } catch (Exception e) {
             System.err.println("Failed to turn ByteArray to DoubleArray: " + e);
             System.exit(-1);
@@ -227,43 +165,9 @@ public class Receiver extends JFrame {
     }
 
     public static void main(String args[]) throws IOException, InterruptedException {
-//        byte[] data = Recorder();
-//        Thread.sleep(1000);
-//        System.out.println(Arrays.toString(data));
         JFrame frame = new Receiver();
         frame.pack();
         frame.show();
-        /*
-        int[] power_debug = new int[data.length];
-        byte curSample;
-        int power = 0;
-        byte[][] decodeFIFO;
-        byte[][] decodeFIFO_removecarrier;
-        byte[] carrier = new byte[0]; //TODO: 载波数据；
-        int startIndex = 0;
-        int[] startIndexDebug = new int[data.length];
-        for(int i=0; i<data.length; i++){
-            curSample = data[i];
-            power = power*(1-1/64) + curSample ^2/64;
-            power_debug[i] = power;
-            if(STATE == 0){
-                // Todo: when state == 0(sync):
-            }else if(STATE == 1){ //decode;
-                decodeFIFO = new byte[data.length][8];
-                if(decodeFIFO.length == 44*108){
-                    //decode:
-                    decodeFIFO_removecarrier = smooth(decodeFIFO, carrier);
-                    byte[] decodeFIFO_power_bit = new byte[108];
-                    for(int j=0; j<107; i++){
-                        decodeFIFO_power_bit[j+1] = sum(decodeFIFO_removecarrier, 10+j*44, 30+j*44);
-                    }
-                    //TODO: check CRC;
-                    startIndex = 0;
-                    STATE = 0;
-                }
-            }
-        }*/
-
     }
 
 

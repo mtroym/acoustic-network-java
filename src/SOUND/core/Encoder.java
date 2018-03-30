@@ -9,15 +9,15 @@ import static java.lang.System.exit;
 
 
 public class Encoder {
-    private static float SAMPLE_RATE = 44100;
-    private static int FRAME_SIZE = 100;
-    private static float CARRIER1_FREQ = 3000;
-    private static float CARRIER0_FREQ = 1000;
+    public static float SAMPLE_RATE = 44100;
+    public static int FRAME_SIZE = 100;
+    public static float CARRIER1_FREQ = 6000;
+    public static float CARRIER0_FREQ = 2000;
     private static double CARRIER1_PHA = 0.5;
     private static double CARRIER0_PHA = 0;
     private static int PREAMBLE_SIZE = 440;
-    private static double CUTOFF_1 = 2e3;
-    private static double CUTOFF_2 = 10e3;
+    private static double CUTOFF_1 = 2000;
+    private static double CUTOFF_2 = 10000;
     private static int BIT_SAMPLE = 88;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
@@ -45,8 +45,7 @@ public class Encoder {
     }
 
 
-
-    private static LinkedList getFile(String filePath) {
+    public static LinkedList getFile(String filePath) {
         LinkedList linkedList = new LinkedList();
         try {
             Reader r = new FileReader(filePath);
@@ -77,8 +76,6 @@ public class Encoder {
             preamble[PREAMBLE_SIZE * 2 - i * 2 - 1] = preamble[i * 2 + 1];
         }
         return preamble;
-//        byte single_pre[] = generateWave(440, 500, 0, 3);
-//        return single_pre;
     }
 
     public static double[] getDoublePreamble() {
@@ -96,9 +93,7 @@ public class Encoder {
 
     private static LinkedList packUp(LinkedList msg) {
         int totalSize = msg.size();
-//        System.out.println(totalSize);
         int numPkg = (int) Math.ceil(totalSize / (double) FRAME_SIZE);
-//        System.out.println(numPkg);
         if (numPkg > 255) {
             exit(-4);
         }
@@ -115,7 +110,6 @@ public class Encoder {
             pkg = utils.addIntArray(utils.dec2Arr(i, 8), pkg);
             // TODO: add CRC code
             pkgs.add(pkg);
-//            System.out.println(Arrays.toString(pkg));
         }
         return pkgs;
     }
@@ -146,15 +140,12 @@ public class Encoder {
                 }
             }
             totalTrack = utils.addArray(totalTrack, soundTrack);
-//            System.out.println(Arrays.toString(soundTrack));
             byte[] zeros = new byte[INTERVAL_BIT];
             totalTrack = utils.addArray(totalTrack, zeros);
         }
-//        System.out.println(Arrays.toString(totalTrack));
         Sender.sendByte(totalTrack);
 
-        System.out.println("=> end debug");
-//        System.out.println(Arrays.toString(totalTrack));
+        System.out.println("=> end Send message");
     }
 
 

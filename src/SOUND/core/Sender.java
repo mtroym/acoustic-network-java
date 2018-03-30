@@ -9,7 +9,7 @@ import static java.lang.StrictMath.round;
 
 public class Sender {
 
-    private static float SAMPLE_RATE = 44100;
+    private static float SAMPLE_RATE = Encoder.SAMPLE_RATE;
 
     public Sender() {
 
@@ -22,7 +22,6 @@ public class Sender {
         int bufferSize = round(t * SAMPLE_RATE);
         byte[] data = new byte[bufferSize * 2];
         double timeIncrement = 1 / SAMPLE_RATE;
-//        (short) ((highByte & 0x00FF) << 8 | (lowByte & 0x00FF))
         for (int i = 0; i < bufferSize; i++) {
             int data1 = (int) (amp * (Math.sin(2 * Math.PI * 1000 * time) +
                 Math.sin(2 * Math.PI * 5000 * time)));
@@ -49,7 +48,6 @@ public class Sender {
                 try {
                     while ((count = audioInputStream.read(audio, 0, audio.length)) != 1) {
                         if (count > 0) {
-//                            System.out.println(Arrays.toString(audio));
                             sourceDataLine.write(audio, 0, count);
                         }
                     }

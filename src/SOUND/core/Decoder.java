@@ -1,38 +1,30 @@
 package SOUND.core;
 
-import sun.awt.FwDispatcher;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static java.lang.System.exit;
-import static java.lang.System.in;
-
 public class Decoder {
 
-    private static float SAMPLE_RATE = 44100;
-    private static int FRAME_SIZE = 100;
-    private static float CARRIER1_FREQ = 3000;
-    private static float CARRIER0_FREQ = 1000;
+    private static float SAMPLE_RATE = Encoder.SAMPLE_RATE;
+    private static int FRAME_SIZE = Encoder.FRAME_SIZE;
     private static int PREAMBLE_SIZE = 440;
-    private static double CUTOFF_1 = 2e3;
-    private static double CUTOFF_2 = 10e3;
     private static int BIT_SAMPLE = 88;
     private static int INTERVAL_BIT = 440; // ~0.01s
     private static int CRC_SIZE = 0;
 
 
     public static double decodeSegment(double signal[]){
-        double data = utils.sumOfPointProduct(signal,Encoder.generateDoubleWave(BIT_SAMPLE,CARRIER0_FREQ));
-        return data;
+        double[] tmpReal = signal;
+        FFT.transform(tmpReal, new double[signal.length]);
+        return (double) utils.maxIdxOfFFT(tmpReal);
     }
 
-    //    public static ByteArrayOutputStream outCoder;
     public static byte[] decodeAudio(double signal[]) throws IOException {
-//        String current = new java.io.File(".").getCanonicalPath();
-//        FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
+        String current = new java.io.File(".").getCanonicalPath();
+        FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
+        FileWriter OUT = new FileWriter(new File(current + "/text/output.txt"));
         int lenAudio = signal.length;
 //        FW.write(String.valueOf(lenAudio));
 //        FW.write('\n');
@@ -49,7 +41,6 @@ public class Decoder {
         int decodeLen = 0;
 
         double[] preamble = Encoder.getDoublePreamble();
-        double[] signalDebug = new double[0];
         boolean isDecode = false;
         for (int i = 0; i < lenAudio; i++) {
             double curr = signal[i];
@@ -64,7 +55,7 @@ public class Decoder {
                 if ((syncPowerDebug[i] > power * 2) && (syncPowerDebug[i] > syncLocalMax) && (syncPowerDebug[i] > 0.05)) {
                     syncLocalMax = syncPowerDebug[i];
                     startIndex = i;
-                } else if (i - startIndex > 400 && startIndex != 0) {
+                } else if (i - startIndex > 440 && startIndex != 0) {
                     System.out.println("=> GOtcha! Preamble!");
                     startIndexDebug[startIndex] = 10;
                     syncLocalMax = 0;
@@ -78,29 +69,35 @@ public class Decoder {
                 decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
                 if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
                     System.out.println("=> DECODING...");
-                    String current = new java.io.File(".").getCanonicalPath();
-                    FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
-                    double info[] = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
-                    for (int decodeIdx = 0; decodeIdx < decodeLen; decodeIdx ++){
-                        info[i] = decodeSegment(Arrays.copyOfRange(decodeFIFO,decodeIdx*FRAME_SIZE , (decodeIdx+1)*FRAME_SIZE));
+//                    String current = new java.io.File(".").getCanonicalPath();
+//                    FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
+                    double info[] = new double[(FRAME_SIZE + 8 + CRC_SIZE)];
+                    for (int decodeIdx = 0; decodeIdx < info.length; decodeIdx++) {
+                        info[decodeIdx] = decodeSegment(Arrays.copyOfRange(decodeFIFO, decodeIdx * BIT_SAMPLE, (decodeIdx + 1) * BIT_SAMPLE));
                     }
-                    FW.write(Arrays.toString(info));
-                    FW.write('\n');
-                    FW.write(String.valueOf(startIndex));
-                    FW.write('\n');
-                    FW.write(Arrays.toString(decodeFIFO));
-                    FW.write('\n');
-                    FW.write(Arrays.toString(signal));
-                    FW.write('\n');
+                    int code[] = utils.normalizePha(info);
+//                    FW.write(Arrays.toString(code));
+                    OUT.write(utils.ints2String(Arrays.copyOfRange(code, 8, code.length)));
+//                    FW.write('\n');
+//                    FW.write(String.valueOf(startIndex));
+//                    FW.write('\n');
+//                    FW.write(Arrays.toString(decodeFIFO));
+//                    FW.write('\n');
+                    // TODO CRC;
+                    // TODO Check pkg
                     isDecode = false;
-                    FW.close();
                     System.out.println("OK");
+                    startIndex = 0;
+                    decodeFIFO = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
                 }
 
             }
-
-
         }
+        FW.write(Arrays.toString(signal));
+        FW.write('\n');
+        OUT.close();
+        FW.close();
+        utils.ENDCHECK();
         System.out.println("=> END");
         return new byte[0];
     }
@@ -109,7 +106,4 @@ public class Decoder {
         System.out.println(Arrays.toString(Receiver.byteToDouble(Encoder.getPreamble())));
     }
 
-    private int decodeSingle(double signal[]) {
-        return 1;
-    }
 }
