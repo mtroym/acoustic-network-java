@@ -1,11 +1,14 @@
 package SOUND.core;
 
+import sun.awt.FwDispatcher;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
 import static java.lang.System.exit;
+import static java.lang.System.in;
 
 public class Decoder {
 
@@ -21,13 +24,18 @@ public class Decoder {
     private static int CRC_SIZE = 0;
 
 
+    public static double decodeSegment(double signal[]){
+        double data = utils.sumOfPointProduct(signal,Encoder.generateDoubleWave(BIT_SAMPLE,CARRIER0_FREQ));
+        return data;
+    }
+
     //    public static ByteArrayOutputStream outCoder;
     public static byte[] decodeAudio(double signal[]) throws IOException {
-        String current = new java.io.File(".").getCanonicalPath();
-        FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
+//        String current = new java.io.File(".").getCanonicalPath();
+//        FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
         int lenAudio = signal.length;
-        FW.write(String.valueOf(lenAudio));
-        FW.write('\n');
+//        FW.write(String.valueOf(lenAudio));
+//        FW.write('\n');
         double power = 0;
         double[] powerDebug = new double[lenAudio];
         int startIndex = 0;
@@ -69,6 +77,15 @@ public class Decoder {
                 decodeLen += 1;
                 decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
                 if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
+                    System.out.println("=> DECODING...");
+                    String current = new java.io.File(".").getCanonicalPath();
+                    FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
+                    double info[] = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
+                    for (int decodeIdx = 0; decodeIdx < decodeLen; decodeIdx ++){
+                        info[i] = decodeSegment(Arrays.copyOfRange(decodeFIFO,decodeIdx*FRAME_SIZE , (decodeIdx+1)*FRAME_SIZE));
+                    }
+                    FW.write(Arrays.toString(info));
+                    FW.write('\n');
                     FW.write(String.valueOf(startIndex));
                     FW.write('\n');
                     FW.write(Arrays.toString(decodeFIFO));
@@ -78,7 +95,6 @@ public class Decoder {
                     isDecode = false;
                     FW.close();
                     System.out.println("OK");
-                    exit(-10);
                 }
 
             }

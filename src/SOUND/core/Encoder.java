@@ -35,6 +35,17 @@ public class Encoder {
         return wave;
     }
 
+    public static double[] generateDoubleWave(int sample, float carrier) {
+        double[] wave = new double[sample];
+        for (int i = 0; i < sample; i++) {
+            double data = (double) (/*carrier / CARRIER0_FREQ */ AMPLE * Math.sin(2 * Math.PI * carrier * i / SAMPLE_RATE));
+            wave[i] = data;
+        }
+        return wave;
+    }
+
+
+
     private static LinkedList getFile(String filePath) {
         LinkedList linkedList = new LinkedList();
         try {
