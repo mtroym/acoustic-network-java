@@ -96,12 +96,12 @@ public class Receiver extends JFrame {
             stop.setEnabled(false);
             inReading = false;
             playAudio();
-//            try {
-//                System.out.println("=> Opening....");
-//                Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));
-//            } catch (IOException e1) {
-//                e1.printStackTrace();
-//            }
+            try {
+                System.out.println("=> Opening....");
+                Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             System.out.println(Arrays.toString(byteToDouble(audioData.toByteArray())));
         };
         stop.addActionListener(stopListener);

@@ -18,7 +18,7 @@ public class Encoder {
     private static int PREAMBLE_SIZE = 440;
     private static double CUTOFF_1 = 2e3;
     private static double CUTOFF_2 = 10e3;
-    private static int BIT_SAMPLE = 44;
+    private static int BIT_SAMPLE = 88;
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static double AMPLE = 127;
@@ -70,6 +70,18 @@ public class Encoder {
 //        return single_pre;
     }
 
+    public static double[] getDoublePreamble() {
+        double[] preamble = new double[PREAMBLE_SIZE];
+        double phaseIncre = (CUTOFF_2 - CUTOFF_1) / PREAMBLE_SIZE / 2;
+
+        for (int i = 0; i < PREAMBLE_SIZE >> 1; i++) {
+            double phase = ((double) i / SAMPLE_RATE) * (i * phaseIncre + CUTOFF_1);
+            double signal = AMPLE * (Math.sin(2 * Math.PI * phase));
+            preamble[i] = signal;
+            preamble[PREAMBLE_SIZE - i - 1] = preamble[i];
+        }
+        return preamble;
+    }
 
     private static LinkedList packUp(LinkedList msg) {
         int totalSize = msg.size();

@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
+import static java.lang.System.exit;
+
 public class Decoder {
 
     private static float SAMPLE_RATE = 44100;
@@ -16,6 +18,8 @@ public class Decoder {
     private static double CUTOFF_2 = 10e3;
     private static int BIT_SAMPLE = 88;
     private static int INTERVAL_BIT = 440; // ~0.01s
+    private static int CRC_SIZE = 0;
+
 
     //    public static ByteArrayOutputStream outCoder;
     public static byte[] decodeAudio(double signal[]) throws IOException {
@@ -24,28 +28,69 @@ public class Decoder {
         int lenAudio = signal.length;
         FW.write(String.valueOf(lenAudio));
         FW.write('\n');
-        for (int i = 0; i < lenAudio - PREAMBLE_SIZE; i++) {
-            double[] potentialPreamble = Arrays.copyOfRange(signal, i * PREAMBLE_SIZE, (i + 1) * PREAMBLE_SIZE);
-            double lastData = potentialPreamble[0];
-            double[] deltas = new double[potentialPreamble.length - 1];
-            int flag = 0;
-            for (int j = 1; j < PREAMBLE_SIZE - 1; j++) {
-                deltas[j - 1] = potentialPreamble[j] - lastData;
-                if (Math.abs(deltas[j - 1]) < 0.1) {
-                    System.out.println(String.valueOf(1));
-                    flag = 1;
-                    break;
+        double power = 0;
+        double[] powerDebug = new double[lenAudio];
+        int startIndex = 0;
+        int[] startIndexDebug = new int[lenAudio];
+        double[] syncFIFO = new double[PREAMBLE_SIZE];
+        double[] syncPowerDebug = new double[lenAudio];
+        double syncLocalMax = 0;
+
+
+        double[] decodeFIFO = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
+        int decodeLen = 0;
+
+        double[] preamble = Encoder.getDoublePreamble();
+        double[] signalDebug = new double[0];
+        boolean isDecode = false;
+        for (int i = 0; i < lenAudio; i++) {
+            double curr = signal[i];
+            power = power * (1 - 1.0 / 64) + (curr * curr) / 64.0;
+            powerDebug[i] = power;
+
+            if (!isDecode) {
+                // SYNC
+                syncFIFO = utils.shiftDouble(syncFIFO, curr);
+                syncPowerDebug[i] = utils.sumOfPointProduct(syncFIFO, preamble) / 200.0;
+
+                if ((syncPowerDebug[i] > power * 2) && (syncPowerDebug[i] > syncLocalMax) && (syncPowerDebug[i] > 0.05)) {
+                    syncLocalMax = syncPowerDebug[i];
+                    startIndex = i;
+                } else if (i - startIndex > 400 && startIndex != 0) {
+                    System.out.println("=> GOtcha! Preamble!");
+                    startIndexDebug[startIndex] = 10;
+                    syncLocalMax = 0;
+                    syncFIFO = new double[PREAMBLE_SIZE];
+                    isDecode = true;
+                    decodeFIFO = Arrays.copyOfRange(signal, startIndex + 1, i);
+                    decodeLen = i - startIndex;
                 }
-                lastData = potentialPreamble[j];
+            } else {
+                decodeLen += 1;
+                decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
+                if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
+                    FW.write(String.valueOf(startIndex));
+                    FW.write('\n');
+                    FW.write(Arrays.toString(powerDebug));
+                    FW.write('\n');
+                    FW.write(Arrays.toString(startIndexDebug));
+                    FW.write('\n');
+                    FW.write(Arrays.toString(decodeFIFO));
+                    FW.write('\n');
+                    FW.write(Arrays.toString(signal));
+
+                    FW.write('\n');
+                    FW.write('\n');
+                    FW.write('\n');
+                    FW.write('\n');
+                    isDecode = false;
+                    System.out.println("OK");
+                    exit(-10);
+                }
+
             }
-            if (flag == 0) {
-                FW.write(Arrays.toString(potentialPreamble));
-                FW.write('\n');
-                FW.write(Arrays.toString(deltas));
-            }
-//            if (i == 44100){
-//                System.exit(0);
-//            }
+
+
         }
         FW.close();
         System.out.println("=> END");
