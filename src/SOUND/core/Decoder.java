@@ -71,19 +71,12 @@ public class Decoder {
                 if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
                     FW.write(String.valueOf(startIndex));
                     FW.write('\n');
-                    FW.write(Arrays.toString(powerDebug));
-                    FW.write('\n');
-                    FW.write(Arrays.toString(startIndexDebug));
-                    FW.write('\n');
                     FW.write(Arrays.toString(decodeFIFO));
                     FW.write('\n');
                     FW.write(Arrays.toString(signal));
-
-                    FW.write('\n');
-                    FW.write('\n');
-                    FW.write('\n');
                     FW.write('\n');
                     isDecode = false;
+                    FW.close();
                     System.out.println("OK");
                     exit(-10);
                 }
@@ -92,7 +85,6 @@ public class Decoder {
 
 
         }
-        FW.close();
         System.out.println("=> END");
         return new byte[0];
     }
