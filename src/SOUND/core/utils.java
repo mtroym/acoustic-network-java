@@ -5,8 +5,18 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 import static java.lang.System.exit;
+import static java.lang.System.in;
 
 public class utils {
+
+    public static double arr2Dec(int[] p2){
+        double dec = 0;
+        for (int i = 0; i < p2.length; i++){
+            dec += ( 1 << (p2.length - i) )*p2[i];
+        }
+        return dec;
+    }
+
 
     public static int[] dec2Arr(int num, int base) {
         int ret[] = new int[base];
@@ -163,6 +173,14 @@ public class utils {
             err += bool2int(dataList.pop() != checked.pop());
         }
         return err / total;
+    }
+
+    public static int sumInt(int[] input){
+        int sum = 0;
+        for (int i : input){
+            sum += i;
+        }
+        return sum;
     }
 
 

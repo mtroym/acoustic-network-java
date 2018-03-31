@@ -101,6 +101,7 @@ public class Receiver extends JFrame {
                             int count = targetDataLine.read(buffer, 0, buffer.length);
                             if (count > 0) {
 //                                System.out.println(Arrays.toString(buffer));
+                                // TODO: Decode buffer.
                                 audioData.write(buffer, 0, count);
                             }
                         }

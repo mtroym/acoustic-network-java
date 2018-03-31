@@ -68,7 +68,7 @@ public class Decoder {
                 decodeLen += 1;
                 decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
                 if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
-//                    System.out.println("=> DECODING...");
+                    System.out.println("=> DECODING...");
 //                    String current = new java.io.File(".").getCanonicalPath();
 //                    FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
                     double info[] = new double[(FRAME_SIZE + 8 + CRC_SIZE)];
@@ -76,8 +76,11 @@ public class Decoder {
                         info[decodeIdx] = decodeSegment(Arrays.copyOfRange(decodeFIFO, decodeIdx * BIT_SAMPLE, (decodeIdx + 1) * BIT_SAMPLE));
                     }
                     int code[] = utils.normalizePha(info);
-//                    FW.write(Arrays.toString(code));
-                    OUT.write(utils.ints2String(Arrays.copyOfRange(code, 8, code.length)));
+                    if (utils.sumInt(code) != 0){
+                        OUT.write(utils.ints2String(Arrays.copyOfRange(code, 8, code.length)));
+                        System.out.println("=> Received pkg #" + String.valueOf(utils.arr2Dec(Arrays.copyOfRange(code,0,8))));
+                    }
+                    //FW.write(Arrays.toString(code));
 //                    FW.write('\n');
 //                    FW.write(String.valueOf(startIndex));
 //                    FW.write('\n');
