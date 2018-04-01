@@ -11,8 +11,8 @@ import static java.lang.System.exit;
 public class Encoder {
     public static float SAMPLE_RATE = 44100;
     public static int FRAME_SIZE = 200;
-    public static float CARRIER1_FREQ = 5000;
-    public static float CARRIER0_FREQ = 1000;
+    public static float CARRIER1_FREQ = 12500;
+    public static float CARRIER0_FREQ = 2000;
     private static double CARRIER1_PHA = 0.5;
     private static double CARRIER0_PHA = 0;
     public static int PREAMBLE_SIZE = 220;
@@ -142,6 +142,10 @@ public class Encoder {
             totalTrack = utils.addArray(totalTrack, soundTrack);
             byte[] zeros = new byte[INTERVAL_BIT];
             totalTrack = utils.addArray(totalTrack, zeros);
+//            if (i % 5 == 0){
+//                zeros = new byte[INTERVAL_BIT];
+//                totalTrack = utils.addArray(totalTrack, zeros);
+//            }
         }
         return totalTrack;
     }

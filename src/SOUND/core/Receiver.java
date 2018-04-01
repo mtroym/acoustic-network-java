@@ -33,6 +33,7 @@ public class Receiver extends JFrame {
         Container content = getContentPane();
         final JButton capture = new JButton("BeginReceive");
         final JButton stop = new JButton("Stop");
+        final JButton capture1 = new JButton("captureSignal");
         final JButton send = new JButton("send");
         capture.setEnabled(true);
         stop.setEnabled(false);
@@ -47,6 +48,17 @@ public class Receiver extends JFrame {
         };
         capture.addActionListener(captureListener);
         content.add(capture, BorderLayout.NORTH);
+
+        ActionListener capture1Listener = e -> {
+            capture.setEnabled(false);
+            capture1.setEnabled(false);
+            stop.setEnabled(true);
+            send.setEnabled(true);
+            inReading = true;
+            captureAudio();
+        };
+        capture1.addActionListener(capture1Listener);
+        content.add(capture1, BorderLayout.WEST);
 
 
         ActionListener sendListener = e -> {
@@ -94,7 +106,7 @@ public class Receiver extends JFrame {
                 if (Math.abs(tmp / 32768f) < 0.01) {
                     doubleArray[i] = 0;
                 } else {
-                    doubleArray[i] = tmp / 32768f;
+                    doubleArray[i] = (tmp / 32768f);
                 }
             }
         } catch (Exception e) {
@@ -113,7 +125,7 @@ public class Receiver extends JFrame {
             targetDataLine.start();
 
             Runnable runner = new Runnable() {
-                int bufferSize = (int) format.getSampleRate() * format.getFrameSize() / 100;
+                int bufferSize = (int) format.getSampleRate() * format.getFrameSize();
                 byte buffer[] = new byte[bufferSize];
 
                 public void run() {
@@ -169,15 +181,15 @@ public class Receiver extends JFrame {
                 double[] syncFIFO = new double[PREAMBLE_SIZE];
                 double syncLocalMax = 0;
                 int decodeLen = 0;
-
                 public void run() {
                     inReading = true;
                     while (inReading) {
                         int count = targetDataLine.read(buffer, 0, buffer.length);
                         if (count > 0) {
                             // TODO
+//                            System.out.println("=> Now is buffer #:" + String.valueOf(whileCount));
                             tmpSignal = byteToDouble(buffer);
-                            for (int i = 0; i < bufferSize / 2; i++) {
+                            for (int i = 0; i < count >> 1; i++) {
                                 double curr = tmpSignal[i];
                                 power = power * (1 - 1.0 / 64) + curr * curr / 64.0;
                                 double powerDebug = utils.sumOfPointProduct(syncFIFO, preamble) / 200.0;
@@ -205,11 +217,10 @@ public class Receiver extends JFrame {
                                         isDecoding = false;
                                         startIndex = 0;
                                         decodeFIFO = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
+                                        decodeLen = 0;
                                     }
                                 }
                             }
-
-
                         }
                     }
                     targetDataLine.drain();

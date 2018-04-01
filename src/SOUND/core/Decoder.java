@@ -50,7 +50,7 @@ public class Decoder {
             if (!isDecode) {
                 // SYNC
                 syncFIFO = utils.shiftDouble(syncFIFO, curr);
-                syncPowerDebug[i] = utils.sumOfPointProduct(syncFIFO, preamble) / 200.0;
+                syncPowerDebug[i] = utils.sumOfPointProduct(syncFIFO, preamble) / PREAMBLE_SIZE;
 
                 if ((syncPowerDebug[i] > power * 2) && (syncPowerDebug[i] > syncLocalMax) && (syncPowerDebug[i] > 0.05)) {
                     syncLocalMax = syncPowerDebug[i];

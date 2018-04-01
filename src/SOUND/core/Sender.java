@@ -24,7 +24,7 @@ public class Sender {
         double timeIncrement = 1 / SAMPLE_RATE;
         for (int i = 0; i < bufferSize; i++) {
             int data1 = (int) (amp * (Math.sin(2 * Math.PI * 1000 * time) +
-                Math.sin(2 * Math.PI * 5000 * time)));
+                    Math.sin(2 * Math.PI * 10000 * time)));
             data[2 * i] = (byte) (data1 & 0x00FF);
             data[2 * i + 1] = (byte) ((data1 >> 8) & 0x00FF);
             time += timeIncrement;
