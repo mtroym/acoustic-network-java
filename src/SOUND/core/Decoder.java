@@ -12,7 +12,7 @@ public class Decoder {
     private static int PREAMBLE_SIZE = Encoder.PREAMBLE_SIZE;
     private static int BIT_SAMPLE = Encoder.BIT_SAMPLE;
     private static int INTERVAL_BIT = Encoder.INTERVAL_BIT; // ~0.01s
-    private static int CRC_SIZE = 0;
+    private static int CRC_SIZE = Encoder.CRC_SIZE;
 
 
     public static double decodeSegment(double signal[]){
@@ -68,7 +68,7 @@ public class Decoder {
                 decodeLen += 1;
                 decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
                 if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
-                    System.out.println("=> DECODING...");
+//                    System.out.println("=> DECODING...");
 //                    String current = new java.io.File(".").getCanonicalPath();
 //                    FileWriter FW = new FileWriter(new File(current + "/DECODE.log"));
                     double info[] = new double[(FRAME_SIZE + 8 + CRC_SIZE)];
@@ -103,6 +103,32 @@ public class Decoder {
         utils.ENDCHECK();
         System.out.println("=> END");
         return new byte[0];
+    }
+
+    public static int[] decodeFIFOArray(double[] decodeFIFO, FileWriter OUT) {
+        double info[] = new double[(FRAME_SIZE + 8 + CRC_SIZE)];
+        for (int decodeIdx = 0; decodeIdx < info.length; decodeIdx++) {
+            info[decodeIdx] = Decoder.decodeSegment(Arrays.copyOfRange(decodeFIFO, decodeIdx * BIT_SAMPLE, (decodeIdx + 1) * BIT_SAMPLE));
+        }
+        int code[] = utils.normalizePha(info);
+        if (utils.sumInt(code) != 0) {
+            double pkgnum = utils.arr2Dec(Arrays.copyOfRange(code, 0, 8));
+            System.out.println("=> Received pkg #" + String.valueOf(pkgnum));
+//            try {
+//                OUT.write(utils.ints2String(Arrays.copyOfRange(code, 8, code.length)));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            System.out.println("=> Writen pkg #" + String.valueOf(pkgnum));
+            return Arrays.copyOfRange(code, 8, code.length);
+        }
+        return new int[0];
+    }
+
+
+    public static String decodeFIFOArrayStr(double[] decodeFIFO, FileWriter OUT) {
+        int[] code = decodeFIFOArray(decodeFIFO, OUT);
+        return utils.ints2String(code);
     }
 
     public static void main(String args[]) throws IOException, InterruptedException {

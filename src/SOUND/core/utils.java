@@ -5,14 +5,13 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 import static java.lang.System.exit;
-import static java.lang.System.in;
 
 public class utils {
 
     public static double arr2Dec(int[] p2){
         double dec = 0;
         for (int i = 0; i < p2.length; i++){
-            dec += ( 1 << (p2.length - i) )*p2[i];
+            dec += (1 << (p2.length - i - 1)) * p2[i];
         }
         return dec;
     }
@@ -193,6 +192,8 @@ public class utils {
     }
 
     public static void main(String args[]) throws IOException {
+//        System.out.println(arr2Dec(dec2Arr(10, 8)));
+//        System.out.println(ints2String(new int[0]));
         ENDCHECK();
     }
 }
