@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.Arrays;
 
 
 public class Receiver extends JFrame {
@@ -22,6 +23,9 @@ public class Receiver extends JFrame {
     private static int BUFF_SIZE = 320;
     private static boolean inReading = true;
     private static ByteArrayOutputStream audioData;
+    private static int CRC_SIZE = Encoder.CRC_SIZE;
+
+
 
     public Receiver() {
         super("Capture Sound Demo");
@@ -39,7 +43,7 @@ public class Receiver extends JFrame {
             stop.setEnabled(true);
             send.setEnabled(true);
             inReading = true;
-            captureAudio();
+            captureDecodeAudio();
         };
         capture.addActionListener(captureListener);
         content.add(capture, BorderLayout.NORTH);
@@ -66,13 +70,13 @@ public class Receiver extends JFrame {
             send.setEnabled(true);
             inReading = false;
 //            playAudio();
-            try {
-                System.out.println("=> Opening....");
-                Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));
-                System.out.println("=> End of Decode");
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+//            try {
+//                System.out.println("=> Opening....");
+//                Decoder.decodeAudio(byteToDouble(audioData.toByteArray()));
+//                System.out.println("=> End of Decode");
+//            } catch (IOException e1) {
+//                e1.printStackTrace();
+//            }
         };
         stop.addActionListener(stopListener);
         content.add(stop, BorderLayout.CENTER);
@@ -125,7 +129,6 @@ public class Receiver extends JFrame {
                             }
                         }
                         audioData.close();
-                        byteToDouble(audioData.toByteArray());
                         targetDataLine.drain();
                         targetDataLine.close();
                     } catch (IOException e) {
@@ -141,6 +144,90 @@ public class Receiver extends JFrame {
             System.exit(-2);
         }
     }
+
+
+    private void captureDecodeAudio() {
+        try {
+            StringBuilder message = new StringBuilder();
+            String current = new java.io.File(".").getCanonicalPath();
+            FileWriter OUT = new FileWriter(new File(current + "/text/output.txt"));
+            final AudioFormat format = Sender.getFormat();
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            final TargetDataLine targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
+            targetDataLine.open(format);
+            targetDataLine.start();
+
+            Runnable runner = new Runnable() {
+                int bufferSize = (int) format.getSampleRate() * format.getFrameSize();
+                byte buffer[] = new byte[bufferSize];
+                double[] preamble = Encoder.getDoublePreamble();
+                boolean isDecoding = false;
+                double[] tmpSignal;
+                double[] decodeFIFO;
+                double power = 0;
+                int startIndex = 0;
+                double[] syncFIFO = new double[PREAMBLE_SIZE];
+                double syncLocalMax = 0;
+                int decodeLen = 0;
+
+                public void run() {
+                    inReading = true;
+                    while (inReading) {
+                        int count = targetDataLine.read(buffer, 0, buffer.length);
+                        if (count > 0) {
+                            // TODO
+                            tmpSignal = byteToDouble(buffer);
+                            for (int i = 0; i < bufferSize / 2; i++) {
+                                double curr = tmpSignal[i];
+                                power = power * (1 - 1.0 / 64) + curr * curr / 64.0;
+                                double powerDebug = utils.sumOfPointProduct(syncFIFO, preamble) / 200.0;
+
+                                if (!isDecoding) {
+                                    //SYNC
+                                    syncFIFO = utils.shiftDouble(syncFIFO, curr);
+                                    if (powerDebug > power * 2 && powerDebug > syncLocalMax && powerDebug > 0.05) {
+                                        syncLocalMax = powerDebug;
+                                        startIndex = i;
+                                    } else if (i - startIndex > PREAMBLE_SIZE && startIndex != 0) {
+                                        syncLocalMax = 0;
+                                        syncFIFO = new double[PREAMBLE_SIZE];
+                                        isDecoding = true;
+                                        decodeFIFO = Arrays.copyOfRange(tmpSignal, startIndex + 1, i);
+                                        decodeLen = i - startIndex;
+                                    }
+                                } else {
+                                    //DECODING
+                                    decodeLen += 1;
+                                    decodeFIFO = utils.appendDoubleArray(decodeFIFO, curr);
+                                    if (decodeLen == BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)) {
+//                                        System.out.println("=> DECODING...");
+                                        message.append(Decoder.decodeFIFOArrayStr(decodeFIFO, OUT));
+                                        isDecoding = false;
+                                        startIndex = 0;
+                                        decodeFIFO = new double[BIT_SAMPLE * (FRAME_SIZE + 8 + CRC_SIZE)];
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+                    targetDataLine.drain();
+                    targetDataLine.close();
+                    System.out.println(message.toString());
+                }
+            };
+            Thread captureThread = new Thread(runner);
+            captureThread.start();
+        } catch (LineUnavailableException e) {
+            System.err.println("Line unavailable: " + e);
+            System.exit(-2);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     private void playAudio() {
         try {

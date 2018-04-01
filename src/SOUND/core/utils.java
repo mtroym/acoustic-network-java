@@ -192,7 +192,8 @@ public class utils {
     }
 
     public static void main(String args[]) throws IOException {
-        System.out.println(arr2Dec(dec2Arr(10, 8)));
-
+//        System.out.println(arr2Dec(dec2Arr(10, 8)));
+//        System.out.println(ints2String(new int[0]));
+        ENDCHECK();
     }
 }

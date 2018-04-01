@@ -22,7 +22,8 @@ public class Encoder {
     private static byte[] FRAME0 = new byte[BIT_SAMPLE];
     private static byte[] FRAME1 = new byte[BIT_SAMPLE];
     private static double AMPLE = 127;
-    public static int INTERVAL_BIT = 300;
+    public static int INTERVAL_BIT = 220;
+    public static int CRC_SIZE = 0;
 
 
     private static byte[] generateWave(int sample, float carrier, double phrase, int sizeAmp) {
@@ -148,36 +149,7 @@ public class Encoder {
 
 
     public static void main(String args[]) throws IOException, InterruptedException {
-        System.out.println("=> Setup carriers!!!!.....");
-        FRAME0 = generateWave(BIT_SAMPLE, CARRIER0_FREQ, CARRIER0_PHA, 1);
-        FRAME1 = generateWave(BIT_SAMPLE, CARRIER1_FREQ, CARRIER1_PHA, 1);
-        String current = new java.io.File(".").getCanonicalPath();
-        LinkedList dataList = getFile(current + "/text/input.txt");
-
-        LinkedList pkgs = packUp(dataList);
-        int len = pkgs.size();
-        System.out.println("=> The length of pkgs to be sent is " + len);
-
-
-        // TODO : Send package by package.
-        byte[] totalTrack = new byte[0];
-        int numPkgs = pkgs.size();
-        for (int i = 0; i < numPkgs; i++) {
-            byte soundTrack[] = getPreamble();
-            int[] singlePkg = (int[]) pkgs.pop();
-            for (int bit : singlePkg) {
-                if (bit == 0) {
-                    soundTrack = utils.addArray(soundTrack, FRAME0);
-                } else {
-                    soundTrack = utils.addArray(soundTrack, FRAME1);
-                }
-            }
-            totalTrack = utils.addArray(totalTrack, soundTrack);
-            byte[] zeros = new byte[INTERVAL_BIT];
-            totalTrack = utils.addArray(totalTrack, zeros);
-        }
-        Sender.sendByte(totalTrack);
-
+        Sender.sendByte(genSoundtrack());
         System.out.println("=> end Send message");
     }
 
