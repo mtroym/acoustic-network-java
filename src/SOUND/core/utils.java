@@ -146,9 +146,10 @@ public class utils {
 
     public static int[] normalizePha(double[] pha) {
         int[] normalized = new int[pha.length];
-        double mean = avgOfArr(pha);
+        double max = maxOfArr(pha);
+        double min = minOfArr(pha);
         for (int i = 0; i < pha.length; i++) {
-            normalized[i] = bool2int(pha[i] > mean);
+            normalized[i] = bool2int(pha[i] > ((max + min) / 2));
         }
         return normalized;
     }
