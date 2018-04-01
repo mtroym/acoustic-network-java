@@ -29,22 +29,41 @@ public class Receiver extends JFrame {
         Container content = getContentPane();
         final JButton capture = new JButton("BeginReceive");
         final JButton stop = new JButton("Stop");
-
+        final JButton send = new JButton("send");
         capture.setEnabled(true);
         stop.setEnabled(false);
+        send.setEnabled(true);
 
         ActionListener captureListener = e -> {
             capture.setEnabled(false);
             stop.setEnabled(true);
+            send.setEnabled(true);
             inReading = true;
             captureAudio();
         };
         capture.addActionListener(captureListener);
         content.add(capture, BorderLayout.NORTH);
 
+
+        ActionListener sendListener = e -> {
+            stop.setEnabled(true);
+            send.setEnabled(false);
+            inReading = true;
+            try {
+                Sender.sendByte(Encoder.genSoundtrack());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        };
+        send.addActionListener(sendListener);
+        content.add(send, BorderLayout.SOUTH);
+
         ActionListener stopListener = e -> {
             capture.setEnabled(true);
             stop.setEnabled(false);
+            send.setEnabled(true);
             inReading = false;
 //            playAudio();
             try {
