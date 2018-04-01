@@ -148,8 +148,9 @@ public class utils {
         int[] normalized = new int[pha.length];
         double max = maxOfArr(pha);
         double min = minOfArr(pha);
+        double mid = ( max + min ) / 2;
         for (int i = 0; i < pha.length; i++) {
-            normalized[i] = bool2int(pha[i] > ((max + min) / 2));
+            normalized[i] = bool2int(pha[i] > mid);
         }
         return normalized;
     }
