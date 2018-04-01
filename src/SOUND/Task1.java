@@ -20,6 +20,7 @@ public class Task1 extends JFrame {
     private static SourceDataLine sourceDataLine;
     private static int Replay = 1;
     private static File audioFile = new File("C:\\Users\\Yenene\\IdeaProjects\\CS120-Toy_1\\src\\SOUND\\treasure.wav");
+    private static AudioInputStream audioStream;
 
     public Task1(){  //录音；
         super("Capture Sound Demo");
@@ -53,7 +54,7 @@ public class Task1 extends JFrame {
             try {
                 byte data[] = outputStream.toByteArray();
                 final InputStream inputStream = new ByteArrayInputStream(data);
-                AudioInputStream audioStream = new AudioInputStream(inputStream, format,
+                audioStream = new AudioInputStream(inputStream, format,
                         data.length / format.getFrameSize());
                 if(Replay == 0){
                     try {
