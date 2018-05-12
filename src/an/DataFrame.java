@@ -27,7 +27,9 @@ public class DataFrame {
     public byte TYPE_NOM = 0;
     public byte TYPE_ACK = 1;
     public byte TYPE_NCK = 2;
-    public String[] types = {"TYPE_NOM","TYPE_ACK","TYPE_NCK"};
+    public byte TYPE_FBG = 3;
+    public byte TYPE_FED = 4;
+    public String[] types = {"TYPE_NOM","TYPE_ACK","TYPE_NCK","TYPE_FBG","TYPE_FED"};
 
     public DataFrame(){
 

@@ -22,12 +22,22 @@ public class Receiver implements Runnable{
     private LinkedList<Double> syncFIFO = new LinkedList<>();
     double[] decodebuffer = new double[Config.PHY_SAMPLES_PER_BYTE];
     PipedInputStream pipedOutputStream;
+    private DataFrame[] dataFrames = new DataFrame[100];
+    public int[] ack = new int[100];
+    public int[] rec = new int[100];
+    public int id;
+    public int fileSize;
 
     Utility utility;
 
-    public Receiver(){
+    public Receiver(int id){
+        this.id = id;
         utility = new Utility();
         pipedOutputStream = new PipedInputStream();
+        for (int i= 0;i < ack.length; i++){
+            ack[i] = 0;
+            rec[i] = 0;
+        }
     }
 
     public void initLine(){
@@ -87,6 +97,15 @@ public class Receiver implements Runnable{
         for (short b: sampleBuffer){
             process(b);
         }
+    }
+
+    public boolean isIdle(){
+        for (short b :sampleBuffer){
+            if (b >= 1000){
+                return false;
+            }
+        }
+        return true;
     }
 
     private double power = 0;
@@ -167,6 +186,17 @@ public class Receiver implements Runnable{
                 }else if(decodeByteCount == 4){
                     df.setType(aByte);
                     decodeByteCount ++;
+                    if (df.getType().equals(df.types[df.TYPE_FBG])){
+                        System.out.println("[Rece]=> Found file! Starting receive.");
+                        resetSync();
+                    }else if(df.getType().equals(df.types[df.TYPE_FED])){
+                        System.out.println("[Rece]=> end file! #pkg is "+df.getId());
+                        resetSync();
+                    }else if(df.getType().equals(df.types[df.TYPE_ACK])){
+                        System.out.println("[SEND]=> rece ACK# " + df.getId());
+                        ack[df.getId()] = 1;
+                        resetSync();
+                    }
 //                    System.out.print("type:");
 //                    System.out.print(df.getType());
 //                    System.out.print(",DataBegin\n[");
@@ -178,22 +208,29 @@ public class Receiver implements Runnable{
                     df.setCrc(aByte);
                     decodeByteCount++;
 //                    System.out.printf("]\n, crc:%X }\n", df.getCrc());
-                    // TODO CRC
+                    // TODO CRC, MAC
 //                    System.out.println();
                     if (!df.getType().equals(df.types[df.TYPE_NCK])){
-                        System.out.println(Arrays.toString(df.getData()));
+//                        System.out.println(Arrays.toString(df.getData()));
+                        System.out.println("[RECE]=> Rece pkg# "+ df.getId());
+                        rec[df.getId()] = 1;
                     }
-                    decodeByteCount = 0;
-                    state = Config.PHY_STATE_SYNC;
-                    decodebufferIndex = 0;
-                    df.reset();
-                    decodebuffer = new double [Config.PHY_SAMPLES_PER_BYTE];
+                    resetSync();
                 }
             }
         }else{
             System.err.println( "[ReXX]=> Unkown state!");
         }
 
+    }
+
+
+    private void resetSync(){
+        decodeByteCount = 0;
+        state = Config.PHY_STATE_SYNC;
+        decodebufferIndex = 0;
+        df.reset();
+        decodebuffer = new double [Config.PHY_SAMPLES_PER_BYTE];
     }
 
     private int[] getBit(){
