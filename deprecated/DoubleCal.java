@@ -1,4 +1,4 @@
-package SOUND.core;
+package useless;
 
 public class DoubleCal {
     private static long A;
@@ -6,7 +6,7 @@ public class DoubleCal {
     private static int Arest;
     private static int Brest;
 
-    public static void main(String[] args) {
+    public static void main0(String[] args) {
         double a = 11.12001;
         double b = 101.10111;
         double res1 = mulDouble(a, b);

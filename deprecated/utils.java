@@ -1,4 +1,6 @@
-package SOUND.core;
+package useless;
+
+import an.Encoder;
 
 import java.io.IOException;
 import java.util.Arrays;

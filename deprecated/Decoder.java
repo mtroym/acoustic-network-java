@@ -1,4 +1,7 @@
-package SOUND.core;
+package useless;
+
+import an.Encoder;
+import an.FFT;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -7,13 +10,12 @@ import java.util.Arrays;
 
 public class Decoder {
 
-    private static float SAMPLE_RATE = Encoder.SAMPLE_RATE;
-    private static int FRAME_SIZE = Encoder.FRAME_SIZE;
-    private static int PREAMBLE_SIZE = Encoder.PREAMBLE_SIZE;
-    private static int BIT_SAMPLE = Encoder.BIT_SAMPLE;
-    private static int INTERVAL_BIT = Encoder.INTERVAL_BIT; // ~0.01s
-    private static int CRC_SIZE = Encoder.CRC_SIZE;
-
+//    private static float SAMPLE_RATE = Encoder.SAMPLE_RATE;
+//    private static int FRAME_SIZE = Encoder.FRAME_SIZE;
+//    private static int PREAMBLE_SIZE = Encoder.PREAMBLE_SIZE;
+//    private static int BIT_SAMPLE = Encoder.BIT_SAMPLE;
+//    private static int INTERVAL_BIT = Encoder.INTERVAL_BIT; // ~0.01s
+//    private static int CRC_SIZE = Encoder.CRC_SIZE;
 
     public static double decodeSegment(double signal[]){
         double[] tmpReal = signal;
@@ -80,13 +82,7 @@ public class Decoder {
                         OUT.write(utils.ints2String(Arrays.copyOfRange(code, 8, code.length)));
                         System.out.println("=> Received pkg #" + String.valueOf(utils.arr2Dec(Arrays.copyOfRange(code,0,8))));
                     }
-                    //FW.write(Arrays.toString(code));
-//                    FW.write('\n');
-//                    FW.write(String.valueOf(startIndex));
-//                    FW.write('\n');
-//                    FW.write(Arrays.toString(decodeFIFO));
-//                    FW.write('\n');
-                    // TODO CRC;
+                    // TODO CRCcly;
                     // TODO Check pkg
                     isDecode = false;
 //                    System.out.println("OK");

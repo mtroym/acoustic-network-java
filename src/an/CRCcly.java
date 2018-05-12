@@ -1,11 +1,9 @@
-package SOUND.core;
+package an;
 
-import java.util.Arrays;
+public class CRCcly {
+    private static int LEN = 100; //1 CRCcly byte per 100 bytes;
 
-public class CRC {
-    private static int LEN = 100; //1 CRC byte per 100 bytes;
-
-    public static void  main(String[] args){
+    public static void  main0(String[] args){
         byte[] data = new byte[1];
         data[0] = 0x12;
         //data[1] = 0x11;

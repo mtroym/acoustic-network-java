@@ -1,4 +1,4 @@
-package SOUND.core;
+package useless;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class Converter {
 
-    public static void main(String[] args) throws Exception {
+    public static void main0(String[] args) throws Exception {
         String src = "C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.pcm";
         String target = "C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.wav";
         FileInputStream fis = new FileInputStream("C:\\Users\\Yenene\\Desktop\\stu\\网络\\proj\\1.pcm");
