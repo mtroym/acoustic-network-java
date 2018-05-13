@@ -3,6 +3,7 @@ package an;
 import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Arrays;
 
 public class Node {
@@ -10,8 +11,11 @@ public class Node {
     Sender sender;
     Encoder encoder;
     Receiver receiver;
+    Decoder decoder;
     PipedInputStream pipedInputStream;
+    PipedOutputStream pipedOutputStream;
     Thread threadReadFile;
+    Thread threadWriteFile;
     Thread receer;
     int src;
     int dst;
@@ -45,6 +49,9 @@ public class Node {
         receiver = new Receiver(this.ID);
         receiver.initLine();
         receer = new Thread(receiver, "threadReceiverSignal");
+        decoder = new Decoder(receiver.pipedOutputStream, name+".bin");
+        threadWriteFile  = new Thread(decoder, "threadWriteFile");
+        threadWriteFile.start();
     }
 
     private void startTx(){
@@ -67,6 +74,14 @@ public class Node {
         receer.start();
     }
 
+
+    public void stopRx(){
+        try {
+            threadWriteFile.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
     private void lockIdle(){
         if (noise){
             while (!receiver.isIdle()){ }
@@ -136,11 +151,11 @@ public class Node {
         for (int i = 0; i < pkgnum; i++){
             if(receiver.ack[i] == 0){
                 long time = stamp - sendTime[i];
-                if(time > 50000){
+                if(time > 5000){
                     System.err.println("Link Error");
                     return;
-                }else if (time > 3000){
-                    System.err.println("TIME OUT send pkg #" + i);
+                }else if (time > 10000){
+                    System.err.println("Link Error");
                     lockIdle();
                     sendTime[i] = stamp;
                     sender.sendFrame(dataFrames[i]);
@@ -197,6 +212,9 @@ public class Node {
             e.printStackTrace();
         }
         node.stopTx();
+
+
+        node.stopRx();
     }
 
 

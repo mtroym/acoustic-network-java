@@ -4,7 +4,9 @@ import com.sun.tools.internal.xjc.model.SymbolSpace;
 import sun.awt.Symbol;
 
 import javax.sound.sampled.*;
+import java.io.IOException;
 import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -21,11 +23,12 @@ public class Receiver implements Runnable{
     private TargetDataLine targetDataLine;
     private LinkedList<Double> syncFIFO = new LinkedList<>();
     double[] decodebuffer = new double[Config.PHY_SAMPLES_PER_BYTE];
-    PipedInputStream pipedOutputStream;
-    private DataFrame[] dataFrames = new DataFrame[100];
+    PipedOutputStream pipedOutputStream;
+    private byte[][] dataFrames = new byte[Config.PHY_PAYLOAD_LEN + 10][100];
     public int[] ack = new int[100];
     public long[] ackTime = new long[100];
     public int[] rec = new int[100];
+    public int[] realrec = new int[100];
     public int id;
     public int fileSize;
 
@@ -34,7 +37,7 @@ public class Receiver implements Runnable{
     public Receiver(int id){
         this.id = id;
         utility = new Utility();
-        pipedOutputStream = new PipedInputStream();
+        pipedOutputStream = new PipedOutputStream();
         for (int i= 0;i < ack.length; i++){
             ack[i] = 0;
             rec[i] = 0;
@@ -195,6 +198,7 @@ public class Receiver implements Runnable{
                         resetSync();
                     }else if(df.getType().equals(df.types[df.TYPE_FED])){
                         System.out.println("[Rece]=> end file! #pkg is "+df.getId());
+//                        forceSaveBin();
                         resetSync();
                     }else if(df.getType().equals(df.types[df.TYPE_ACK])){
                         if (df.getId() > 100 || df.getId() < 0){
@@ -203,6 +207,7 @@ public class Receiver implements Runnable{
                         System.out.println("[SEND]=> rece ACK# " + df.getId());
                         ack[df.getId()] = 1;
                         ackTime[df.getId()] = System.currentTimeMillis();
+                        realrec[df.getId()] = 1;
                         resetSync();
                     }
 //                    System.out.print("type:");
@@ -221,14 +226,17 @@ public class Receiver implements Runnable{
                     if (aByte != crc){
                         // crcCheck
                         System.err.println("[RECE]=> CHECK WRONG CRC ! pkg #" + df.getId());
-                        resetSync();
+                        dataFrames[df.getId()] = df.getData().clone();
+                        realrec[df.getId()] = 1;
                     }
-//                    System.out.println();
-                    if (!df.getType().equals(df.types[df.TYPE_NCK])){
-//                        System.out.println(Arrays.toString(df.getData()));
+                    else if (!df.getType().equals(df.types[df.TYPE_NCK])){
                         System.out.println("[RECE]=> Rece pkg# "+ df.getId());
+                        dataFrames[df.getId()] = df.getData().clone();
+                        realrec[df.getId()] = 1;
                         rec[df.getId()] = 1;
                     }
+//                    saveBin();
+                    ffffsaveBin();
                     resetSync();
                 }
             }
@@ -236,6 +244,48 @@ public class Receiver implements Runnable{
             System.err.println( "[ReXX]=> Unkown state!");
         }
 
+    }
+
+    private void saveBin(){
+        for (int i = 0; i< fileSize; i ++){
+            if (realrec[i] != 1){
+                break;
+            }else {
+                if (i == fileSize -1){
+                    // TODO : save bin
+                    forceSaveBin();
+                    stopLine();
+                }
+            }
+        }
+    }
+
+
+    private void ffffsaveBin(){
+        for (int i = 0; i< fileSize; i ++){
+            if (rec[i] != 1){
+                break;
+            }else {
+                if (i == fileSize -1){
+                    // TODO : save bin
+                    forceSaveBin();
+                    stopLine();
+                }
+            }
+        }
+    }
+    private void forceSaveBin(){
+        for (int j = 0; j < fileSize; j++) {
+            int len = dataFrames[j][1];
+            len = len < 0 ? len + 256:len;
+            byte[] file = Arrays.copyOfRange(dataFrames[j], 5, len + 5);
+            System.out.print(file.length);
+            try {
+                pipedOutputStream.write(file, 0, file.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
