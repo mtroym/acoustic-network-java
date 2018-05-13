@@ -1,5 +1,7 @@
 package an;
 
+import java.util.Arrays;
+
 public class CRCcly {
     private static int LEN = 100; //1 CRCcly byte per 100 bytes;
 
@@ -69,13 +71,13 @@ public class CRCcly {
     }
 
     protected static int FindCRC(byte[] data){ //0x07标准CRC8；
-        int CRC = 0;
-        int genPoly = 0x07;
+        short CRC = 0;
+        int genPoly = 0xe7;
         for(int i=0;i<data.length; i++){
             CRC ^= data[i];
             for(int j=0;j<8;j++){
                 if((CRC & 0x80) != 0){
-                    CRC = (CRC << 1) ^ genPoly;
+                    CRC = (short) ((CRC << 1) ^ genPoly);
                 }else{
                     CRC <<= 1;
                 }
@@ -83,5 +85,12 @@ public class CRCcly {
         }
         CRC &= 0xff;
         return CRC;
+    }
+
+
+
+    public static void main(String []args){
+        byte[] crc = {1,(byte)0xff,3,4,5,6,6,7,78,8};
+        System.out.print(FindCRC(crc));
     }
 }

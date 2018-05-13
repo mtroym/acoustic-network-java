@@ -9,11 +9,17 @@ public class Sender {
     private int bufferlen;
     public SourceDataLine sourceDataLine;
     Utility utility;
-    DataFrame wn;
-    public Sender() {
+    DataFrame common;
+    public int id;
+
+    public Sender(int id) {
+        this.id = id;
         utility = new Utility();
-        wn = new DataFrame();
-        wn.setType(wn.TYPE_NCK);
+        common = new DataFrame();
+        common.setType(common.TYPE_NCK);
+    }
+    public void setGoal(int dst){
+        common.setSrcDst(id,dst);
     }
 
     public void initLine(){
@@ -101,9 +107,30 @@ public class Sender {
 
 
     public void sendWN(){
-        sendFrame(wn);
+        common.setType(common.TYPE_NCK);
+        sendFrame(common);
     }
 
+    public void sendFileBgn(){
+        common.setType(common.TYPE_FBG);
+        sendFrame(common);
+    }
+
+    public void setFileEnd(int endid){
+        common.setId((byte)endid);
+    }
+
+    public void sendFileEnd(){
+        common.setType(common.TYPE_FED);
+        sendFrame(common);
+        common.setId((byte)0);
+    }
+    public void sendACK(int id){
+        common.setId((byte)id);
+        common.setType(common.TYPE_ACK);
+        sendFrame(common);
+        common.setId((byte)0);
+    }
     private int sendBuffer(){
         return sourceDataLine.write(hwbuffer, 0, bufferlen);
     }
