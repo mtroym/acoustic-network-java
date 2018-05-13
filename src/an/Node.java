@@ -17,6 +17,8 @@ public class Node {
     int dst;
     DataFrame [] dataFrames = new DataFrame[100];
     public long[] sendTime = new long[100];
+    boolean noise = false;
+
 
     public Node(int ID){
         setID(ID);
@@ -66,16 +68,14 @@ public class Node {
     }
 
     private void lockIdle(){
-//        while (!receiver.isIdle()){ }
+        if (noise){
+            while (!receiver.isIdle()){ }
+        }
     }
 
     public void sendFile() throws IOException {
         int numByteTotal = 0;
         int pkgNum = 0;
-        lockIdle();
-        sender.sendWN();
-        lockIdle();
-        sender.sendWN();
         lockIdle();
         sender.sendFileBgn();
         long stamp0 = System.currentTimeMillis();
@@ -85,26 +85,29 @@ public class Node {
             byte [] dataRead = new byte[Config.PHY_PAYLOAD_LEN];
             numByte = pipedInputStream.read(dataRead, 0 , dataRead.length);
             if (numByte == -1) {
-//                while (!receiver.isIdle()){ }
+                lockIdle();
                 receiver.fileSize = pkgNum;
                 sender.setFileEnd(pkgNum);
                 sender.sendFileEnd();
                 break;
             }else{
                 numByteTotal += numByte;
-                // TODO: doing mac... ACK ...
                 DataFrame df = new DataFrame(dataRead, numByte, pkgNum);
                 df.setSrcDst(this.src, this.dst);
                 df.setType(df.TYPE_NOM);
+                byte crc = sender.utility.updateCRC(df.getData(), 0,df.getDataLen() -1);
+                df.setCrc(crc);
+
+                // TODO : CHECK SUM
 //                if (pkgNum == 0) {df.setType((byte)df.TYPE_NBG);}
 //                df.printSelf();
                 dataFrames[pkgNum] = df;
-//                lockIdle();
+                lockIdle();
                 sender.sendFrame(df);
                 long stampnow = System.currentTimeMillis(); //TODO task1 -> comment out this...
                 sendTime[pkgNum] = stampnow; //TODO task1 -> comment out this...
                 sendACK(); //TODO task1 -> comment out this...
-                checkLinkError(stampnow, pkgNum); //TODO task1 -> comment out this...
+                checkLinkError(stampnow, pkgNum, false); //TODO task1 -> comment out this...
             }
             pkgNum += 1;
         }
@@ -129,12 +132,24 @@ public class Node {
     }
 
 
-    private void checkLinkError(long stamp, int pkgnum){
+    private void checkLinkError(long stamp, int pkgnum, boolean ping){
         for (int i = 0; i < pkgnum; i++){
             if(receiver.ack[i] == 0){
-                if(stamp - sendTime[i] > 1000){
-                    System.err.println("LINK ERROR");
+                long time = stamp - sendTime[i];
+                if(time > 50000){
+                    System.err.println("Link Error");
                     return;
+                }else if (time > 3000){
+                    System.err.println("TIME OUT send pkg #" + i);
+                    lockIdle();
+                    sendTime[i] = stamp;
+                    sender.sendFrame(dataFrames[i]);
+                    return;
+                }
+            }else {
+                long time = receiver.ackTime[i] - sendTime[i];
+                if (ping){
+                    System.out.println("[PING]=> RTT: "+time);
                 }
             }
         }
@@ -149,12 +164,13 @@ public class Node {
 //            System.out.print(receiver.fileSize);
             for (int i = 0; i< receiver.fileSize; i++){
                 if (receiver.ack[i] == 0){
-//                    lockIdle();
+                    lockIdle();
+                    sendTime[i] = System.currentTimeMillis();
                     sender.sendFrame(dataFrames[i]);
+                    sendACK();
                     flag = 0;
                 }
             }
-            sendACK();
         }
     }
 

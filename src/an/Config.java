@@ -28,7 +28,7 @@ public class Config {
     public final static int PHY_STATE_SYNC = 0;
     public final static int PHY_STATE_DECODE = 1;
 
-    public final static double PHY_THRE = 3.0;
+    public final static double PHY_THRE = 3.5;
     public final static int PHY_LINEBUFFER_SIZE = 8;
 
 

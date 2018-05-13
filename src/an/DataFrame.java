@@ -56,6 +56,12 @@ public class DataFrame {
     public int getId(){
         return this.data[0];
     }
+    public int getSrc(){
+        return this.data[srcIndex];
+    }
+    public int getDst(){
+        return this.data[dstIndex];
+    }
     public void setId(byte id){
         this.data[idIndex] = id;
         this.id = id;

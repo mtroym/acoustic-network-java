@@ -12,11 +12,21 @@ public class Utility {
     protected short[] carrier0Neg = new short[Config.PHY_SAMPLES_PER_SYMBOL];
     protected short[] carrier1Neg = new short[Config.PHY_SAMPLES_PER_SYMBOL];
     protected short[] heatUp = new short[2*Config.PHY_SAMPLES_PER_BYTE];
+    CRC crcUtility = new CRC();
+
+
 
     public Utility(){
         initWaves();
-        System.out.println("=> PHY_SAMPLES_PER_SYMBOL: " + Config.PHY_SAMPLES_PER_SYMBOL);
+        crcUtility.reset();
     }
+
+    public byte updateCRC(byte[] data, int from ,int len){
+        crcUtility.reset();
+        crcUtility.update(data,from,len+5);
+        return (byte) crcUtility.get();
+    }
+
 
     private void initWaves(){
         calPreamble(Preamble);
