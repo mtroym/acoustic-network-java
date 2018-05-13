@@ -3,14 +3,19 @@ package an;
 import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Arrays;
 
 public class Node {
     int ID = 0;
     Sender sender;
     Encoder encoder;
+    Decoder decoder;
     PipedInputStream pipedInputStream;
+    PipedOutputStream pipedOutputStream;
     Thread threadReadFile;
+    Thread threadWriteFile;
+
     int src;
     int dst;
 
@@ -29,6 +34,17 @@ public class Node {
         threadReadFile = new Thread(encoder, "threadReadFile");
         sender.initLine();
     }
+
+    private void initRx(String name){
+        pipedOutputStream = new PipedOutputStream();
+        sender = new Sender();
+        decoder = new Decoder(pipedOutputStream, name + ".bin");
+        threadWriteFile = new Thread(decoder, "threadWriteFile");
+    }
+
+//    private void startRx(){
+//        threadWriteFile.start();
+//    }
 
     private void startTx(){
         System.out.println("[SEND]=> Start Tx!");
@@ -67,7 +83,7 @@ public class Node {
                 df.setSrcDst(this.src, this.dst);
                 df.setType(df.TYPE_NOM);
 //                if (pkgNum == 0) {df.setType((byte)df.TYPE_NBG);}
-//                df.printSelf();
+                df.printSelf();
                 int ret = sender.sendFrame(df);
             }
             pkgNum += 1;
@@ -81,9 +97,11 @@ public class Node {
     }
 
 
+
     public static void send() {
         Node node = new Node();
         node.initTx("INPUT6250B");
+        node.initRx("OUTPUT");
         node.startTx();
         node.setGoal(1);
         try {
