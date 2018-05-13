@@ -193,7 +193,6 @@ public class Receiver implements Runnable{
         }else{
             System.err.println( "[ReXX]=> Unkown state!");
         }
-
     }
 
     private int[] getBit(){
